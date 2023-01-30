@@ -1,0 +1,15 @@
+#######################################################
+#                                                     #
+#  Thank you for installing the Scheduled Deployment  #
+#  Scaler Helm chart.                                 #
+#                                                     #
+#######################################################
+
+The following CronJobs have been created:
+
+| Schedule Name | Deployment | Desired Replicas | Schedule | Namespace |
+|---------------|------------|------------------|----------|-----------|
+{{- range $scheduleName, $schedule := .Values.scalingSchedules }}
+| {{ $scheduleName }} | {{ $schedule.deployment }} | {{ $schedule.desiredReplicas }} | {{ $schedule.schedule }} | {{ default "default" $schedule.namespace }} |
+{{- end }}
+

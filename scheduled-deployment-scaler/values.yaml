@@ -1,0 +1,9 @@
+scalingSchedules:
+  control-plane-mt-cust1-scale-up:
+    deployment: control-plane-mt-cust1
+    schedule: 37 17 * * *
+    desiredReplicas: 4
+  control-plane-mt-cust1-scale-down:
+    deployment: control-plane-mt-cust1
+    schedule: 39 17 * * *
+    desiredReplicas: 1
