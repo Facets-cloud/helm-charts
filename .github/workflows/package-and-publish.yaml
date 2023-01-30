@@ -1,0 +1,33 @@
+name: Package and Publish Helm Chart
+
+on:
+  workflow_dispatch:
+
+env:
+  CHART_NAME: ${{ inputs.chart }}
+  BRANCH: gh-pages
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Package Helm Chart
+        uses: stable/package@v1
+        with:
+          chart_dir: ${{ env.CHART_NAME }}
+
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: charts
+          force_orphan: true
+          deploy_key: ${{ secrets.DEPLOY_KEY }}
+          branch: ${{ env.BRANCH }}
+
+inputs:
+  chart:
+    description: 'The name of the directory that contains the Helm chart to be packaged and published'
+    required: true
