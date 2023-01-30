@@ -7,6 +7,11 @@ env:
   CHART_NAME: ${{ inputs.chart }}
   BRANCH: gh-pages
 
+inputs:
+  chart:
+    description: 'The name of the directory that contains the Helm chart to be packaged and published'
+    required: true
+
 jobs:
   package:
     runs-on: ubuntu-latest
@@ -27,7 +32,4 @@ jobs:
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           branch: ${{ env.BRANCH }}
 
-inputs:
-  chart:
-    description: 'The name of the directory that contains the Helm chart to be packaged and published'
-    required: true
+
