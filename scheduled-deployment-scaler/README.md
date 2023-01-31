@@ -6,9 +6,9 @@ A Helm chart to schedule replica count updates for your Kubernetes Deployments.
 
 The following table lists the values accepted by the chart
 
-| Key                | Description                                                                                                                               | Default               |
-|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
-| `scalingSchedules` | Map of objects. The key of the map is used as the name of the schedule. (Value is of type [Schedule](#schedule-object) for details) | `{}`                  |
+| Key                | Description                                                                                                                           | Default               |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
+| `scalingSchedules` | Map of objects. The key of the map is used as the name of the schedule. Value must be of type [Schedule](#schedule-object) | `{}`                  |
 
 ## Schedule Object
 
