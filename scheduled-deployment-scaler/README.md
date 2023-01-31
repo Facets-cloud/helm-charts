@@ -1,6 +1,6 @@
 # Scheduled Deployment Scaler Helm Chart
 
-A Helm chart to schedule replica count updates of your Kubernetes Deployments.
+A Helm chart to schedule replica count updates for your Kubernetes Deployments.
 
 ## Values
 
