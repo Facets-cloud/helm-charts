@@ -16,7 +16,7 @@ The following table lists the values accepted by the chart
 ```bash
 helm repo add facets-cloud https://facets-cloud.github.io/helm-charts
 
-helm install helm install myrelease facets-cloud/gke-pods-cleanup -f gke-pods-cleanup/values.yaml
+helm install helm install [RELEASE_NAME] facets-cloud/gke-pods-cleanup -f gke-pods-cleanup/values.yaml
 ```
 
 ## Sample Values
