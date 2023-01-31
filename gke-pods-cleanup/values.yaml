@@ -4,6 +4,7 @@
 
 image: "bitnami/kubectl:1.21"
 schedule: "0 0 * * *"
+pods: "NodeShutdown|Terminated"
 
 
 
