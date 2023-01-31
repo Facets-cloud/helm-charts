@@ -10,3 +10,17 @@ The following table lists the values accepted by the chart
 |--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
 | `image` | The image with which cronjob will create a job to delete the specified pods | `null` |
 | `schedule` | The scheduled time at which the deletion of pods would take place | `null` |
+
+## Usage
+
+```bash
+helm repo add facets-cloud https://facets-cloud.github.io/helm-charts
+
+helm install helm install myrelease facets-cloud/gke-pods-cleanup -f gke-pods-cleanup/values.yaml
+```
+
+## Sample Values
+```yaml
+image: "busybox"
+schedule: "45 12 * * *"
+```
