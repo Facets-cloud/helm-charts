@@ -28,7 +28,7 @@ spec:
               command: 
               - "sh"
               - "-c"
-              - "kubectl get pods --all-namespaces | grep -E 'NodeShutdown|Terminated' | awk '{print $2}' | xargs kubectl delete pod"
+              - "kubectl get pods --all-namespaces | grep -E '{{ .Values.pods }}' | awk '{print $2}' | xargs kubectl delete pod"
               resources:
                 limits:
                   cpu: 100m
