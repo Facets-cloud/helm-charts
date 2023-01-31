@@ -1,0 +1,11 @@
+# Default values for deletePods.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image: "bitnami/kubectl:1.21"
+schedule: "0 0 * * *"
+
+
+
+
+

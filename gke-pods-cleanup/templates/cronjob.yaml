@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name  }}
+  labels:
+    app: {{ .Release.Name  }}
+    release: {{ .Release.Name }}
+spec:
+  suspend: false
+  concurrencyPolicy: Forbid
+  schedule: "{{ .Values.schedule }}"
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: {{ .Release.Name }}
+            release: {{ .Release.Name }}
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ .Release.Name  }}
+          containers:
+            - name: {{ .Release.Name }}
+              image: "{{ .Values.image }}"
+              command: 
+              - "sh"
+              - "-c"
+              - "kubectl get pods --all-namespaces | grep -E 'NodeShutdown|Terminated' | awk '{print $2}' | xargs kubectl delete pod"
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+
+

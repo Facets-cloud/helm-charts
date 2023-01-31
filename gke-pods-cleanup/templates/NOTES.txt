@@ -1,0 +1,15 @@
+#######################################################
+#                                                     #
+#  Thank you for installing the GKE Pods Cleanup      #
+#  Helm chart.                                        #
+#                                                     #
+#######################################################
+
+The following CronJobs have been created:
+
+| CronJob Name | image | Schedule | Namespace |
+|---------------|------------|------------------|----------|
+{{- range $schedule := .Values.scalingSchedules }}
+| {{ .Release.Name  }} | {{ .Values.image }} | {{ .Values.schedule }} | {{ default "default" .Release.Namespace }} |
+{{- end }}
+
