@@ -18,10 +18,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Package Helm Chart
-        uses: stable/package@v1
-        with:
-          chart_dir: ${{ env.CHART_NAME }}
+      - name: Package and publish chart
+        run: |
+          apt-get update
+          apt-get install -y curl
+          curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
+          ./linux-amd64/helm package {{ inputs.chart }}
+          mkdir -p charts
+          mv *.tgz charts/
+          ./linux-amd64/helm repo index charts/ --url https://{{ env.CHART_NAME }}.github.io/charts
 
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
