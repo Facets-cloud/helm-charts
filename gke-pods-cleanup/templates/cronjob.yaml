@@ -28,13 +28,6 @@ spec:
               command: 
               - "sh"
               - "-c"
-              - "kubectl get pods --all-namespaces | grep -E 'NodeShutdown|Terminated' | awk '{print $2}' | xargs kubectl delete pod"
-              resources:
-                limits:
-                  cpu: 100m
-                  memory: 128Mi
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
+              - "kubectl delete pods --field-selector=status.phase={{ .Values.podStatusesToCleanUp }} -n {{ .Values.namespace }}"
 
 

@@ -10,6 +10,8 @@ The following table lists the values accepted by the chart
 |--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
 | `image` | The image with which cronjob will create a job to delete the specified pods | `null` |
 | `schedule` | The scheduled time at which the deletion of pods would take place | `null` |
+| `podStatusesToCleanUp` | The status of the pod which is to be deleted | `null` |
+| `namespace` | The namespace from where the pods are to be deleted | `default` |
 
 ## Usage
 
@@ -23,4 +25,6 @@ helm install helm install myrelease facets-cloud/gke-pods-cleanup -f gke-pods-cl
 ```yaml
 image: "busybox"
 schedule: "45 12 * * *"
+podStatusesToCleanUp: "Succeeded"
+namespace: "kube-system"
 ```
