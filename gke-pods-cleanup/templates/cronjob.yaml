@@ -28,6 +28,7 @@ spec:
               command: 
               - "sh"
               - "-c"
-              - "kubectl delete pods --field-selector=status.phase={{ .Values.podStatusesToCleanUp }} -n {{ .Values.namespace }}"
-
-
+              - |
+                for status in {{ range .Values.podStatusesToCleanUp }}{{ . }} {{ end }}; do
+                kubectl delete pods --field-selector=status.phase=$status -n {{ .Values.namespace }};
+                done
