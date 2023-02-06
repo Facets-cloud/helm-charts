@@ -6,5 +6,4 @@ image: "bitnami/kubectl:1.16"
 schedule: "* * * * *"
 podStatusesToCleanUp: 
  - "Failed"
- - "Running"
 namespace: "default"
