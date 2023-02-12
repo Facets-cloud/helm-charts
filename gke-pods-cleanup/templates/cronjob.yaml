@@ -28,7 +28,4 @@ spec:
               command: 
               - "sh"
               - "-c"
-              - |
-                for status in {{ range .Values.podStatusesToCleanUp }}{{ . }} {{ end }}; do
-                kubectl delete pods --field-selector=status.phase=$status -n {{ .Values.namespace }};
-                done
+              - "kubectl get pod | grep -E '{{ .Values.podStatusesToCleanUp }}' | awk '{print $1}' | xargs -r kubectl delete pod -n {{ .Values.namespace }}"
