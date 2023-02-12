@@ -4,6 +4,5 @@
 
 image: "bitnami/kubectl:1.16"
 schedule: "* * * * *"
-podStatusesToCleanUp: 
- - "Failed"
+podStatusesToCleanUp: "NodeShutdown|Terminated"
 namespace: "default"
