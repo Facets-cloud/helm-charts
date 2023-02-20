@@ -3,6 +3,6 @@
 # Declare variables to be passed into your templates.
 
 image: "bitnami/kubectl:1.16"
-schedule: "* * * * *"
+schedule: "0 0 * * *"
 podStatusesToCleanUp: "NodeShutdown|Terminated"
 filter: "Failed"
