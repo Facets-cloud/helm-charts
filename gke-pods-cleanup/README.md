@@ -27,6 +27,6 @@ helm install helm install [RELEASE_NAME] facets-cloud/gke-pods-cleanup -f gke-po
 image: "busybox"
 schedule: "45 12 * * *"
 podStatusesToCleanUp: "Running|Completed|NodeShutdowm|Terminated"
-filter: "Failed"
+filter: "Succeeded"
 namespace: "kube-system"
 ```
