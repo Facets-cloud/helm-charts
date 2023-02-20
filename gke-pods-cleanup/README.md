@@ -12,6 +12,7 @@ The following table lists the values accepted by the chart
 | `schedule` | The scheduled time at which the deletion of pods would take place | `null` |
 | `podStatusesToCleanUp` | The status of the pod which is to be deleted | `null` |
 | `namespace` | The namespace from where the pods are to be deleted | `default` |
+| `filter` | The current status of the pod | `default` |
 
 ## Usage
 
@@ -26,5 +27,6 @@ helm install helm install [RELEASE_NAME] facets-cloud/gke-pods-cleanup -f gke-po
 image: "busybox"
 schedule: "45 12 * * *"
 podStatusesToCleanUp: "Running|Completed|NodeShutdowm|Terminated"
+filter: "Failed"
 namespace: "kube-system"
 ```
