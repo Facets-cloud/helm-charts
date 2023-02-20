@@ -4,5 +4,11 @@
 
 image: "bitnami/kubectl:1.16"
 schedule: "* * * * *"
-podStatusesToCleanUp: "NodeShutdown|Terminated"
-namespace: "default"
+commandConfig:
+- name: "get-pods"
+  command: "kubectl get pod"
+  filter: "Running"
+  namespace: "test1"
+  status: "Succeeded"
+- name: "delete-pod"
+  command: "kubectl get pod --field-selector=status.phase='Succeeded' | grep -E 'Completed|Error' | awk '{print $1}' | xargs -r kubectl delete pod -n default"
