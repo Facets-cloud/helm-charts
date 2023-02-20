@@ -7,8 +7,8 @@
 
 The following CronJobs have been created:
 
-| CronJob Name | image | Schedule | Namespace |
-|---------------|------------|------------------|----------|
-| {{ .Release.Name  }} | {{ .Values.image }} | {{ .Values.schedule }} | {{ default "default" .Release.Namespace }} |
+| CronJob Name | Command | Schedule |
+|---------------|------------|------------------|
+| {{ .Release.Name  }}-{{ .cronName }} | "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'NodeShutdown|Terminated' | awk '{print $1}' | xargs -r kubectl delete pod" | {{ .schedule }} | 
 
 

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: deletePods
-description: A Helm chart for gke clusters to delete Terminated or NodeShutDown Pods
+name: podcleanup
+description: A Helm chart for gke clusters to delete unwanted Pods based on their status
 
 # A chart can be either an 'application' or a 'library' chart.
 #

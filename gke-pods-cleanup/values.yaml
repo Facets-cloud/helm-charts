@@ -2,7 +2,10 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-image: "bitnami/kubectl:1.16"
-schedule: "0 0 * * *"
-podStatusesToCleanUp: "NodeShutdown|Terminated"
-filter: "Failed"
+cronConfig:
+- cronName: "cleanup-terminated-pods"
+  schedule: "0 0 * * *"
+  command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'NodeShutdown|Terminated' | awk '{print $1}' | xargs -r kubectl delete pod"
+- cronName: "cleanup-completed-pods"
+  schedule: "0 0 * * *"
+  command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod"

@@ -1,6 +1,6 @@
-# Gke pods cleanup Helm chart
+# Pods cleanup Helm chart
 
-A Helm chart to schedule deletion of pods with NodeShutdown and Terminated state daily in gke clusters.
+A Helm chart to schedule deletion of pods by their statuses daily in the specified namespace of the cluster.
 
 ## Values
 
@@ -8,11 +8,15 @@ The following table lists the values accepted by the chart
 
 | Key                | Description                                                                                                                           | Default               |
 |--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
-| `image` | The image with which cronjob will create a job to delete the specified pods | `null` |
-| `schedule` | The scheduled time at which the deletion of pods would take place | `null` |
-| `podStatusesToCleanUp` | The status of the pod which is to be deleted | `null` |
-| `namespace` | The namespace from where the pods are to be deleted | `default` |
-| `filter` | The current status of the pod | `null` |
+| `cronConfig` | Map of objects. The key of the map should be the name of the configurations to be used and the value should be the desired value for the cronjob to run | `{}`                  |
+
+## Cronjob Configurations
+
+| Key               | Description                                                                                                                 | Default |
+|-------------------| ---------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `cronName`        | Name of the cronjob to be created       | `null`  |
+| `schedule`      | The schedule at which the cronjob should run               | `null`  |
+| `command` | The command that a cronjob should run      | `null`  |
 
 ## Usage
 
