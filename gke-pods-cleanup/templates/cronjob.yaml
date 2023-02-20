@@ -1,14 +1,32 @@
+{{- range $index, $commandConfig := .Values.commandConfig }}
+{{- $status := "" -}}
+{{- $namespaceArg := "" -}}
+{{- $filterExpression := "" -}}
+{{- if $commandConfig.status -}}
+  {{- $status = printf "--field-selector=status.phase=%s" $commandConfig.status -}}  
+{{ end }}
+{{- if $commandConfig.namespace -}}
+  {{- if eq $commandConfig.namespace "*" -}}
+    {{- $namespaceArg = print "-A" -}}
+  {{- else -}}
+    {{- $namespaceArg = printf "-n=%s" $commandConfig.namespace -}}
+  {{- end -}}
+{{ end }}
+{{- if $commandConfig.filter -}}
+  {{- $filterExpression = printf "| grep -E %s" $commandConfig.filter -}}
+{{ end }}
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Release.Name  }}
+  name: {{ $.Release.Name }}-{{ $commandConfig.name }}
   labels:
-    app: {{ .Release.Name  }}
-    release: {{ .Release.Name }}
+    app: cronjob-{{ $commandConfig.name }}
+    release: cronjob-{{ $commandConfig.name }}
 spec:
   suspend: false
   concurrencyPolicy: Forbid
-  schedule: "{{ .Values.schedule }}"
+  schedule: "{{ $.Values.schedule }}"
   successfulJobsHistoryLimit: 10
   failedJobsHistoryLimit: 10
   jobTemplate:
@@ -17,15 +35,16 @@ spec:
       template:
         metadata:
           labels:
-            app: {{ .Release.Name }}
-            release: {{ .Release.Name }}
+            app: cronjob-{{ $commandConfig.name }}
+            release: cronjob-{{ $commandConfig.name }}
         spec:
           restartPolicy: Never
-          serviceAccountName: {{ .Release.Name  }}
+          serviceAccountName: {{ $.Release.Name }}
           containers:
-            - name: {{ .Release.Name }}
-              image: "{{ .Values.image }}"
+            - name: {{ $.Release.Name }}
+              image: "{{ $.Values.image }}"
               command: 
               - "sh"
               - "-c"
-              - "kubectl get pod | grep -E '{{ .Values.podStatusesToCleanUp }}' | awk '{print $1}' | xargs -r kubectl delete pod -n {{ .Values.namespace }}"
+              - "{{ printf "%s %s %s %s" $commandConfig.command $status $namespaceArg $filterExpression }}"
+{{- end }}
