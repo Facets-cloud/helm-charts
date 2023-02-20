@@ -28,9 +28,12 @@ helm install helm install [RELEASE_NAME] facets-cloud/gke-pods-cleanup -f gke-po
 
 ## Sample Values
 ```yaml
-image: "busybox"
-schedule: "45 12 * * *"
-podStatusesToCleanUp: "Running|Completed"
-filter: "Running"
-namespace: "kube-system"
+cronConfig:
+- cronName: "cleanup-pending-pods"
+  schedule: "0 * * * *"
+  command: "kubectl get pod --field-selector=status.phase='Pending'| grep -E 'Pending' | awk '{print $1}' | xargs -r kubectl delete pod"
+- cronName: "cleanup-completed-success-pods"
+  schedule: "30 15 * * *"
+  command: "kubectl get pod --field-selector=status.phase='Succeeded'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod"
+
 ```
