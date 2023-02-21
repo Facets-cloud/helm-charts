@@ -1,6 +1,6 @@
 #######################################################
 #                                                     #
-#  Thank you for installing the GKE Pods Cleanup      #
+#  Thank you for installing the kubectl-crons         #
 #  Helm chart.                                        #
 #                                                     #
 #######################################################
