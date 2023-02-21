@@ -9,6 +9,6 @@ The following CronJobs have been created:
 
 | CronJob Name | Command | Schedule |
 |---------------|------------|------------------|
-| {{ .Release.Name  }}-{{ .cronName }} | "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'NodeShutdown|Terminated' | awk '{print $1}' | xargs -r kubectl delete pod" | {{ .schedule }} | 
+| {{ .Release.Name  }}-{{ .cronName }} | "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'NodeShutdown|Terminated' | awk '{print $1}' | xargs -r kubectl delete pod -n default" | {{ .schedule }} | 
 
 

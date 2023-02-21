@@ -1,4 +1,4 @@
-# Pods cleanup Helm chart
+# Schedule pods cleanup Helm chart
 
 A Helm chart to schedule deletion of pods by their statuses daily in the specified namespace of the cluster.
 

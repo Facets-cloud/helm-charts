@@ -1,0 +1,11 @@
+# Default values for deletePods.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+cronConfig:
+- cronName: "cleanup-terminated-pods"
+  schedule: "0 0 * * *"
+  command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'NodeShutdown|Terminated' | awk '{print $1}' | xargs -r kubectl delete pod -n default"
+- cronName: "cleanup-completed-pods"
+  schedule: "0 0 * * *"
+  command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod -n default"
