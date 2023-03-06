@@ -1,0 +1,34 @@
+{{- range .Values.cronConfig }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ $.Release.Name }}-{{ .cronName }}
+  labels:
+    app: cronjob-{{ .cronName }}
+    release: cronjob-{{ .cronName }}
+spec:
+  suspend: false
+  concurrencyPolicy: Forbid
+  schedule: "{{ .schedule }}"
+  successfulJobsHistoryLimit: 10
+  failedJobsHistoryLimit: 10
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels:
+            app: cronjob-{{ .cronName }}
+            release: cronjob-{{ .cronName }}
+        spec:
+          restartPolicy: Never
+          serviceAccountName: {{ $.Release.Name }}
+          containers:
+            - name: {{ $.Release.Name }}
+              image: "bitnami/kubectl:1.16"
+              command: 
+              - "sh"
+              - "-c"
+              - "{{ .command }}"
+---
+{{- end }}
