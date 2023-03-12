@@ -1,0 +1,10 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.windowsExporter.configMapName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.windowsExporter.fullname }}
+data:
+  config.yml: |
+{{- toYaml .Values.windowsExporter.config | nindent 4 }}
