@@ -1,14 +1,8 @@
-securityContext: 
-  windowsOptions:
-    hostProcess: true
-    runAsUserName: "NT AUTHORITY\\system"
-
 namespace: default
 
 podMonitor:
   fullname: windows-exporter-podmonitor
-  metricsPort: http-web
-  scheme: http
+  jobLabel: windows-exporter
   labels:
     app: windows-exporter
     release: prometheus-operator
@@ -16,22 +10,13 @@ podMonitor:
     app: windows-exporter
 
 windowsExporter:
-  fullname: windows-exporter
-  metricsPort: 9182
+  fullname: windows-exporter-daemonset
+  hostPort: 9182
   metricsPortname: http-web
-  scheme: http
   labels:
     app: windows-exporter
-    prometheus.io/scrape: "true"
-    prometheus.io/port: "9182"
-    prometheus.io/path: "metrics"
   selectorLabels:
     app: windows-exporter
-  image:
-    repository: ghcr.io/prometheus-community/windows-exporter
-    pullPolicy: Always
-    tag: latest-1809
-  configMapName: windows-exporter-config
   nodeSelector:
     kubernetes.io/os: windows
   tolerations:
@@ -44,6 +29,7 @@ windowsExporter:
       operator: Equal
       value: windowsnode
 
+configMap:
   configMapName: windows-exporter-config
   config:
     collectors:

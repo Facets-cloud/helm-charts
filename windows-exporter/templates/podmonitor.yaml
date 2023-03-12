@@ -8,13 +8,13 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
 spec:
-  jobLabel: windows-exporter
+  jobLabel: {{ .Values.podMonitor.jobLabel }}
   selector:
     matchLabels:
       {{- range $key, $value := .Values.podMonitor.selectorLabels }}
       {{ $key }}: {{ $value | quote }}
       {{- end }}
   podMetricsEndpoints:
-  - port: {{ .Values.podMonitor.metricsPort }}
-    scheme: {{ .Values.podMonitor.scheme }}
+  - port: {{ .Values.windowsExporter.metricsPortname }}
+    scheme: http
 

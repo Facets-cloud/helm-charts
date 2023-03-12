@@ -1,9 +1,12 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  namespace: {{ .Values.namespace }}
   name: {{ .Values.windowsExporter.fullname }}
+  namespace: {{ .Values.namespace }}
   labels:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9182"
+    prometheus.io/path: "metrics"
     {{- range $key, $value := .Values.windowsExporter.labels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -20,8 +23,10 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
     spec:
-      securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+      securityContext: 
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\system"
       hostNetwork: true
       initContainers:
         - name: configure-firewall
@@ -31,12 +36,12 @@ spec:
       containers:
       - args: 
         - --config.file=./config.yml
-        name: {{ .Chart.Name }}
-        image: {{ .Values.windowsExporter.image.repository }}:{{ .Values.windowsExporter.image.tag }}
-        imagePullPolicy: {{ .Values.windowsExporter.image.pullPolicy }}
+        name: windows-exporter
+        image: ghcr.io/prometheus-community/windows-exporter:latest-1809
+        imagePullPolicy: Always
         ports:
-        - containerPort: {{ .Values.windowsExporter.metricsPort }}
-          hostPort: {{ .Values.windowsExporter.metricsPort }}
+        - containerPort: 9182
+          hostPort: {{ .Values.windowsExporter.hostPort }}
           name: {{ .Values.windowsExporter.metricsPortname }}
         volumeMounts:
         - name: windows-exporter-config
@@ -53,4 +58,4 @@ spec:
       volumes:
       - name: windows-exporter-config
         configMap:
-          name: {{ .Values.windowsExporter.configMapName }}
+          name: {{ .Values.configMap.configMapName }}

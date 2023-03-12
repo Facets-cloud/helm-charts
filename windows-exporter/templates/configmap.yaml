@@ -1,10 +1,12 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ .Values.windowsExporter.configMapName }}
+  name: {{ .Values.configMap.configMapName }}
   namespace: {{ .Values.namespace }}
   labels:
-    app: {{ .Values.windowsExporter.fullname }}
+    {{- range $key, $value := .Values.windowsExporter.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
 data:
   config.yml: |
-{{- toYaml .Values.windowsExporter.config | nindent 4 }}
+{{- toYaml .Values.configMap.config | nindent 4 }}
