@@ -18,3 +18,4 @@ spec:
   - port: {{ .Values.windowsExporter.metricsPortname }}
     scheme: http
 
+

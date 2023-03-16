@@ -1,7 +1,7 @@
 namespace: default
 
 podMonitor:
-  fullname: windows-exporter-podmonitor
+  fullname: windows-exporter
   jobLabel: windows-exporter
   labels:
     app: windows-exporter
@@ -10,7 +10,7 @@ podMonitor:
     app: windows-exporter
 
 windowsExporter:
-  fullname: windows-exporter-daemonset
+  fullname: windows-exporter
   hostPort: 9182
   metricsPortname: http-web
   labels:

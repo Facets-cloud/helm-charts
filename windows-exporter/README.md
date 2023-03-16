@@ -17,7 +17,7 @@ The following table lists the values accepted by the chart
 
 | Key               | Description                                                                                                                 | Default |
 |-------------------| ---------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `fullname`        | Fullname of the PodMonitor to be created       | `windows-exporter-podmonitor`  |
+| `fullname`        | Fullname of the PodMonitor to be created       | `windows-exporter`  |
 | `jobLabel`      | The label of the job this PodMonitor targets               | `windows-exporter`  |
 | `labels` | Labels to add to the PodMonitor      | `app: windows-exporter`<br>`release: prometheus-operator`  |
 | `selectorLabels` | Labels used to select pods      | `app: windows-exporter`  |
@@ -26,7 +26,7 @@ The following table lists the values accepted by the chart
 
 | Key               | Description                                                                                                                 | Default |
 |-------------------| ---------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `fullname`        | Fullname of the DaemonSet to be created       | `windows-exporter-daemonset`  |
+| `fullname`        | Fullname of the DaemonSet to be created       | `windows-exporter`  |
 | `hostPort`      | The host port to bind for the metrics endpoint               | `9182`  |
 | `metricsPortname` | Name of the port where metrics are exposed on the pods      | `http-web`  |
 | `labels` | Labels to add to the DaemonSet      | `app: windows-exporter`  |
