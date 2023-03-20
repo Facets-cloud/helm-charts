@@ -1,0 +1,39 @@
+namespace: default
+
+podMonitor:
+  fullname: windows-exporter
+  jobLabel: windows-exporter
+  labels:
+    app: windows-exporter
+    release: prometheus-operator
+  selectorLabels:
+    app: windows-exporter
+
+windowsExporter:
+  fullname: windows-exporter
+  hostPort: 9182
+  metricsPortname: http-web
+  labels:
+    app: windows-exporter
+  selectorLabels:
+    app: windows-exporter
+  nodeSelector:
+    kubernetes.io/os: windows
+  tolerations:
+    - effect: NoSchedule
+      key: kubernetes.azure.com/scalesetpriority
+      operator: Equal
+      value: spot
+    - effect: NoSchedule
+      key: dedicated
+      operator: Equal
+      value: windowsnode
+
+configMap:
+  configMapName: windows-exporter-config
+  config:
+    collectors:
+      enabled: '[defaults],container'
+    collector:
+      service:
+        services-where: "Name='containerd' or Name='kubelet'"

@@ -1,0 +1,12 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Values.configMap.configMapName }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- range $key, $value := .Values.windowsExporter.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+data:
+  config.yml: |
+{{- toYaml .Values.configMap.config | nindent 4 }}

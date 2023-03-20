@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ .Values.windowsExporter.fullname }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9182"
+    prometheus.io/path: "metrics"
+    {{- range $key, $value := .Values.windowsExporter.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- range $key, $value := .Values.windowsExporter.selectorLabels }}
+      {{ $key }}: {{ $value | quote }}
+      {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- range $key, $value := .Values.windowsExporter.selectorLabels }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+    spec:
+      securityContext: 
+        windowsOptions:
+          hostProcess: true
+          runAsUserName: "NT AUTHORITY\\system"
+      hostNetwork: true
+      initContainers:
+        - name: configure-firewall
+          image: mcr.microsoft.com/powershell:lts-nanoserver-1809
+          command: ["powershell"]
+          args: ["-c", "New-NetFirewallRule", "-DisplayName", "'windows-exporter'", "-Direction", "inbound", "-Profile", "Any", "-Action", "Allow", "-LocalPort", "9182", "-Protocol", "TCP"]  
+      containers:
+      - args: 
+        - --config.file=./config.yml
+        name: windows-exporter
+        image: ghcr.io/prometheus-community/windows-exporter:latest-1809
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9182
+          hostPort: {{ .Values.windowsExporter.hostPort }}
+          name: {{ .Values.windowsExporter.metricsPortname }}
+        volumeMounts:
+        - name: windows-exporter-config
+          mountPath: .\config.yml
+          subPath: config.yml
+      {{- with .Values.windowsExporter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.windowsExporter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      - name: windows-exporter-config
+        configMap:
+          name: {{ .Values.configMap.configMapName }}

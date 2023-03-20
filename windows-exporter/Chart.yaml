@@ -1,0 +1,5 @@
+apiVersion: v2
+name: windows-exporter
+description: A Helm chart to deploy windows-exporter and register to prometheus via podmonitor in a k8s cluster
+version: 0.1.0
+appVersion: "1.0.0"
