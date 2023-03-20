@@ -19,9 +19,9 @@ jobs:
           sudo apt-get install -y curl
           curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
           for i in $(ls -d .)
-          do
-          ./linux-amd64/helm package $i || true
-          done
+          ./linux-amd64/helm package kubectl-crons
+          ./linux-amd64/helm package scheduled-deployment-scaler
+          ./linux-amd64/helm package windows-exporter
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
