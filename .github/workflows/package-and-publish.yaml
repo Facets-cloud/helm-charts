@@ -20,7 +20,7 @@ jobs:
           curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
           for i in $(ls -d .)
           do
-          ./linux-amd64/helm package $i
+          ./linux-amd64/helm package $i || true
           done
           mkdir -p charts
           mv *.tgz charts/
