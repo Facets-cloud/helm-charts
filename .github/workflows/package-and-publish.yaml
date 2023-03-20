@@ -18,7 +18,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y curl
           curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
-          ./linux-amd64/helm package ${ls -d */}
+          for i in ${ls -d .}
+          do
+          ./linux-amd64/helm package ${i}
+          done
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
