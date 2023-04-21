@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+  labels:
+    app: {{ .Values.chartName }}-fluentd
+  name: {{ .Values.chartName }}-fluentd
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.chartName }}-fluentd
+      release: fluentd
+  template:
+    metadata:
+      annotations:
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+      labels:
+        app: {{ .Values.chartName }}-fluentd
+        name: {{ .Values.chartName }}-fluentd
+        release: fluentd
+    spec:
+      containers:
+        - env:
+            - name: FLUENTD_ARGS
+              valueFrom:
+                secretKeyRef:
+                  key: FLUENTD_ARGS
+                  name: fluentd-configs
+          image: {{ .Values.loggingStack.fluentd.image.repository }}
+          imagePullPolicy: IfNotPresent
+          name: {{ .Values.chartName }}-fluentd
+          resources:
+            limits:
+              cpu: 250m
+              memory: 1Gi
+          volumeMounts:
+            - mountPath: /var/log/efs
+              name: logs-vol
+      priorityClassName: {{ .Values.priorityClass.name }}
+      restartPolicy: Always
+      tolerations:
+        - effect: {{ .Values.tolerations.effect }}
+          key: {{ .Values.tolerations.key }}
+          operator: {{ .Values.tolerations.operator }}
+          value: {{ .Values.tolerations.value }}
+      volumes:
+        - name: logs-vol
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentVolumeClaims.name }}-pvc
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+
+---
+#apiVersion: scheduling.k8s.io/v1
+#kind: PriorityClass
+#metadata:
+#  name: {{ .Values.priorityClass.name }}
+#preemptionPolicy: PreemptLowerPriority
+#value: {{ .Values.priorityClass.value }}
+
