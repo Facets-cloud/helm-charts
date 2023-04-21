@@ -1,0 +1,134 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: wetty
+  name: wetty
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wetty
+      release: wetty
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        chart: capillary-base-cc-0.2.13
+        checksum/config: dae35c1532b5e943cb10a2ad1d212c7b0af9ac10634986520ed075a316e3adb8
+        checksum/credentials: 3945a1016eba278264500a437dee48be12728b19ff7812c309243abf5ec9270c
+        checksum/filecredentials: 6f38de50012155d87049104b84738cf4c1db2def7930f08a63eb339c737c059c
+        iam.amazonaws.com/role: na
+      creationTimestamp: null
+      labels:
+        app: wetty
+        podSize: MICRO
+        release: wetty
+        resourceAllocationStrategy: GENERAL_PURPOSE
+    spec:
+      containers:
+        - command:
+            - sh
+            - -c
+            - yarn start --sshhost wetty-ssh
+          image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10
+          imagePullPolicy: IfNotPresent
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - sleep 30
+          livenessProbe:
+            failureThreshold: 20
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 10
+          name: wetty
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: 20
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 3000
+            timeoutSeconds: 10
+          resources:
+            limits:
+              cpu: 125m
+              memory: 512Mi
+            requests:
+              cpu: 125m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/log/dumps
+              name: dump-vol
+            - mountPath: /etc/credentialfiles/
+              name: wetty-file-credentials-vol
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: false
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        - effect: NoSchedule
+          key: kubernetes.azure.com/scalesetpriority
+          operator: Equal
+          value: spot
+      volumes:
+        - hostPath:
+            path: /var/log/dumps/wetty
+            type: DirectoryOrCreate
+          name: dump-vol
+        - name: wetty-file-credentials-vol
+          secret:
+            defaultMode: 420
+            secretName: wetty-file-credentials
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: wetty
+  name: wetty
+  namespace: default
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: wetty
+    release: wetty
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wetty-file-credentials
+  namespace: default
+type: Opaque
