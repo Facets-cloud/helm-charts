@@ -22,15 +22,12 @@ spec:
         release: fluentd
     spec:
       containers:
-        - env:
-            - name: FLUENTD_ARGS
-              valueFrom:
-                secretKeyRef:
-                  key: FLUENTD_ARGS
-                  name: fluentd-configs
-          image: {{ .Values.loggingStack.fluentd.image.repository }}
+        - image: {{ .Values.loggingStack.fluentd.image.repository }}
           imagePullPolicy: IfNotPresent
           name: {{ .Values.chartName }}-fluentd
+          env:
+          - name: FLUENTD_ARGS
+            value: "--no-supervisor -v"
           resources:
             limits:
               cpu: 250m
