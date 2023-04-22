@@ -2,14 +2,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: wetty
-  name: wetty
+    app: {{ .Values.chartName }}-wetty
+  name: {{ .Values.chartName }}-wetty
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: wetty
+      app: {{ .Values.chartName }}-wetty
       release: wetty
   strategy:
     rollingUpdate:
@@ -18,15 +18,8 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
-        chart: capillary-base-cc-0.2.13
-        checksum/config: dae35c1532b5e943cb10a2ad1d212c7b0af9ac10634986520ed075a316e3adb8
-        checksum/credentials: 3945a1016eba278264500a437dee48be12728b19ff7812c309243abf5ec9270c
-        checksum/filecredentials: 6f38de50012155d87049104b84738cf4c1db2def7930f08a63eb339c737c059c
-        iam.amazonaws.com/role: na
-      creationTimestamp: null
       labels:
-        app: wetty
+        app: {{ .Values.chartName }}-wetty
         podSize: MICRO
         release: wetty
         resourceAllocationStrategy: GENERAL_PURPOSE
@@ -35,9 +28,9 @@ spec:
         - command:
             - sh
             - -c
-            - yarn start --sshhost wetty-ssh
-          image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10
-          imagePullPolicy: IfNotPresent
+            - {{ .Values.wetty.shcommand }}
+          image: {{ .Values.wetty.image.repository }}
+          imagePullPolicy: {{ .Values.wetty.image.pullPolicy }}
           lifecycle:
             preStop:
               exec:
@@ -53,7 +46,7 @@ spec:
             tcpSocket:
               port: 3000
             timeoutSeconds: 10
-          name: wetty
+          name: {{ .Values.wetty.name }}
           ports:
             - containerPort: 3000
               name: http
