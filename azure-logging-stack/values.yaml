@@ -19,57 +19,6 @@ priorityClass:
 storageClassName: ccazfile
 
 loggingStack:
-  wetty:
-    name: wetty
-    replicaCount: 1
-    image:
-      repository: "313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app"
-      tag: "6c9d009-10"
-      pullPolicy: "IfNotPresent"
-    livenessProbe:
-      enabled: true
-      initialDelaySeconds: 30
-      periodSeconds: 10
-      timeoutSeconds: 10
-      successThreshold: 1
-      failureThreshold: 20
-      tcpSocket:
-        port: 3000
-    readinessProbe:
-      enabled: true
-      initialDelaySeconds: 30
-      periodSeconds: 10
-      timeoutSeconds: 10
-      successThreshold: 1
-      failureThreshold: 20
-      tcpSocket:
-        port: 3000
-    resources:
-      requests:
-        cpu: "100m"
-        memory: "128Mi"
-      limits:
-        cpu: "200m"
-        memory: "256Mi"
-    tolerations:
-      - key: "kubernetes.azure.com/scalesetpriority"
-        operator: "Equal"
-        value: "spot"
-        effect: "NoSchedule"
-      - key: "node.kubernetes.io/not-ready"
-        operator: "Exists"
-        effect: "NoExecute"
-        tolerationSeconds: 300
-      - key: "node.kubernetes.io/unreachable"
-        operator: "Exists"
-        effect: "NoExecute"
-        tolerationSeconds: 300
-      - key: "node.kubernetes.io/memory-pressure"
-        operator: "Exists"
-        effect: "NoSchedule"
-    deploymentStrategy: "RollingUpdate"
-    imagePullPolicy: "IfNotPresent"
-    preStopSleepTime: "yarn start --sshhost wetty-ssh"
   wettySsh:
     name: wetty-ssh
     image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-ssh-host:30a4b00-16
@@ -79,3 +28,19 @@ loggingStack:
       repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/fluentd-efs:new
 
 
+wetty:
+    name: wetty
+    replicaCount: 1
+    image:
+      repository: "313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10"
+      pullPolicy: "IfNotPresent"
+    deploymentStrategy: "RollingUpdate"
+    imagePullPolicy: "IfNotPresent"
+    shcommand: "yarn start --sshhost wetty-ssh"
+
+wettysshAdditionalVolumes:
+  enabled: true
+  pvcNames:
+    - name: logs-vol
+      mountPath: /var/log/efs
+      claimName: logs-pvc
