@@ -39,7 +39,7 @@ wetty:
     shcommand: "yarn start --sshhost wetty-ssh"
 
 wettysshAdditionalVolumes:
-  enabled: true
+  enabled: false
   pvcNames:
     - name: logs-vol
       mountPath: /var/log/efs
