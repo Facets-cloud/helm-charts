@@ -9,6 +9,7 @@ The following table lists the values accepted by the chart
 | Key                | Description                                                                                                                           | Default               |
 |--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
 | `cronConfig` | Map of objects. The key of the map should be the name of the configurations to be used and the value should be the desired value for the cronjob to run | `{}`                  |
+| `tolerations` | The tolerations to be added to the pod created by cronjob     | `null`  |
 
 ## Cronjob Configurations
 
@@ -17,7 +18,7 @@ The following table lists the values accepted by the chart
 | `cronName`        | Name of the cronjob to be created       | `null`  |
 | `schedule`      | The schedule at which the cronjob should run               | `null`  |
 | `command` | The command that a cronjob should run      | `null`  |
-| `tolerations` | The tolerations to be added to the pod created by cronjob     | `null`  |
+
 ## Usage
 
 ```bash

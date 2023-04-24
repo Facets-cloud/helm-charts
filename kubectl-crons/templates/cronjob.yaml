@@ -23,7 +23,7 @@ spec:
         spec:
           restartPolicy: Never
           serviceAccountName: {{ $.Release.Name }}
-          {{- with .tolerations }}
+          {{- with $.Values.tolerations }}
           tolerations:
             {{ . | toYaml | nindent 10 }}
           {{- end }}
