@@ -23,5 +23,5 @@ wettysshAdditionalVolumes:
 ```bash
 helm repo add facets-cloud https://facets-cloud.github.io/helm-charts
 
-helm install helm install myrelease facets-cloud/azure-logging-stack 
+helm install myrelease facets-cloud/azure-logging-stack 
 ```
