@@ -1,5 +1,4 @@
 global:
-  chartName: loggingstack
   tolerations:
     effect: NoSchedule
     key: kubernetes.azure.com/scalesetpriority

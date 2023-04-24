@@ -1,30 +1,26 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
-    app: {{ .Values.global.chartName }}-fluentd
-  name: {{ .Values.global.chartName }}-fluentd
+    app: {{ .Release.Name }}-fluentd
+  name: {{ .Release.Name }}-fluentd
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: {{ .Values.global.chartName }}-fluentd
+      app: {{ .Release.Name }}-fluentd
       release: fluentd
   template:
     metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
       labels:
-        app: {{ .Values.global.chartName }}-fluentd
-        name: {{ .Values.global.chartName }}-fluentd
+        app: {{ .Release.Name }}-fluentd
+        name: {{ .Release.Name }}-fluentd
         release: fluentd
     spec:
       containers:
         - image: {{ .Values.fluentd.image.repository }}
           imagePullPolicy: {{ .Values.fluentd.imagePullPolicy }}
-          name: {{ .Values.global.chartName }}-fluentd
+          name: {{ .Release.Name }}-fluentd
           env:
           - name: FLUENTD_ARGS
             value: "--no-supervisor -v"
@@ -65,5 +61,3 @@ spec:
   resources:
     requests:
       storage: {{ .Values.logsVolume.persistentVolumeClaims.storageSize }}
-
-

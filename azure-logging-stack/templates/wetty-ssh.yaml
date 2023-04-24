@@ -1,26 +1,21 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  annotations:
-    cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
-    app: {{ .Values.global.chartName }}-wetty-ssh
-  name: {{ .Values.global.chartName }}-wetty-ssh
+    app: {{ .Release.Name }}-wetty-ssh
+  name: {{ .Release.Name }}-wetty-ssh
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.global.chartName }}-wetty-ssh
+      app: {{ .Release.Name }}-wetty-ssh
       release: wetty-ssh
   serviceName: wetty-ssh
   template:
     metadata:
-      annotations:
-        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
-        sidecar.istio.io/inject: "true"
       labels:
-        app: {{ .Values.global.chartName }}-wetty-ssh
+        app: {{ .Release.Name }}-wetty-ssh
         release: wetty-ssh
     spec:
       containers:
@@ -87,7 +82,7 @@ kind: Service
 metadata:
   annotations:
   labels:
-    app: {{ .Values.global.chartName }}-wetty-ssh
+    app: {{ .Release.Name }}-wetty-ssh
     release: wetty-ssh
   name: wetty-ssh
   namespace: default
@@ -102,7 +97,7 @@ spec:
       protocol: TCP
       targetPort: 22
   selector:
-    app: {{ .Values.global.chartName }}-wetty-ssh
+    app: {{ .Release.Name }}-wetty-ssh
     release: wetty-ssh
   type: ClusterIP
 
