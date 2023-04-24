@@ -16,18 +16,5 @@
 #reclaimPolicy: Retain
 #volumeBindingMode: Immediate
 
----
-# PVC
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ .Values.persistentVolumeClaims.name }}-pvc
-spec:
-  accessModes:
-    - {{ .Values.persistentVolumeClaims.accessMode }}
-  storageClassName: {{ .Values.storageClassName }}
-  resources:
-    requests:
-      storage: {{ .Values.persistentVolumeClaims.storageSize }}
 
 

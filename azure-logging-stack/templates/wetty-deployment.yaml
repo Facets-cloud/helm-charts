@@ -2,14 +2,14 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: {{ .Values.chartName }}-wetty
-  name: {{ .Values.chartName }}-wetty
+    app: {{ .Values.global.chartName }}-wetty
+  name: {{ .Values.global.chartName }}-wetty
   namespace: default
 spec:
-  replicas: 1
+  replicas: {{ .Values.wetty.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Values.chartName }}-wetty
+      app: {{ .Values.global.chartName }}-wetty
       release: wetty
   strategy:
     rollingUpdate:
@@ -19,16 +19,15 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ .Values.chartName }}-wetty
-        podSize: MICRO
+        app: {{ .Values.global.chartName }}-wetty
         release: wetty
-        resourceAllocationStrategy: GENERAL_PURPOSE
     spec:
       containers:
         - command:
             - sh
             - -c
             - {{ .Values.wetty.shcommand }}
+          name: wetty
           image: {{ .Values.wetty.image.repository }}
           imagePullPolicy: {{ .Values.wetty.image.pullPolicy }}
           lifecycle:
@@ -39,68 +38,56 @@ spec:
                   - -c
                   - sleep 30
           livenessProbe:
-            failureThreshold: 20
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
+            failureThreshold: {{ .Values.wetty.livenessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.wetty.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wetty.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.wetty.livenessProbe.successThreshold }}
             tcpSocket:
-              port: 3000
-            timeoutSeconds: 10
-          name: {{ .Values.wetty.name }}
+              port: {{ .Values.wetty.livenessProbe.tcpSocket.port }}
+            timeoutSeconds: {{ .Values.wetty.livenessProbe.timeoutSeconds }}
           ports:
             - containerPort: 3000
               name: http
               protocol: TCP
           readinessProbe:
-            failureThreshold: 20
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            successThreshold: 1
+            failureThreshold: {{ .Values.wetty.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.wetty.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wetty.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.wetty.readinessProbe.successThreshold }}
             tcpSocket:
-              port: 3000
-            timeoutSeconds: 10
+              port: {{ .Values.wetty.readinessProbe.tcpSocket.port }}
+            timeoutSeconds: {{ .Values.wetty.readinessProbe.timeoutSeconds }}
           resources:
             limits:
-              cpu: 125m
-              memory: 512Mi
+              cpu: {{ .Values.wetty.resources.limits.cpu }}
+              memory: {{ .Values.wetty.resources.limits.memory }}
             requests:
-              cpu: 125m
-              memory: 512Mi
+              cpu: {{ .Values.wetty.resources.requests.cpu }}
+              memory: {{ .Values.wetty.resources.requests.memory }}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           volumeMounts:
             - mountPath: /var/log/dumps
               name: dump-vol
-            - mountPath: /etc/credentialfiles/
-              name: wetty-file-credentials-vol
-      dnsPolicy: ClusterFirst
-      enableServiceLinks: false
       restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
       tolerations:
-        - effect: NoSchedule
-          key: kubernetes.azure.com/scalesetpriority
-          operator: Equal
-          value: spot
+        - effect: {{ .Values.global.tolerations.effect }}
+          key: {{ .Values.global.tolerations.key }}
+          operator: {{ .Values.global.tolerations.operator }}
+          value: {{ .Values.global.tolerations.value }}
       volumes:
         - hostPath:
             path: /var/log/dumps/wetty
             type: DirectoryOrCreate
           name: dump-vol
-        - name: wetty-file-credentials-vol
-          secret:
-            defaultMode: 420
-            secretName: wetty-file-credentials
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: wetty
-  name: wetty
+    app: {{ .Values.global.chartName }}-wetty
+  name: {{ .Values.global.chartName }}-wetty
   namespace: default
 spec:
   internalTrafficPolicy: Cluster
@@ -113,15 +100,15 @@ spec:
       protocol: TCP
       targetPort: 3000
   selector:
-    app: wetty
+    app: {{ .Values.global.chartName }}-wetty
     release: wetty
   sessionAffinity: None
   type: ClusterIP
 
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: wetty-file-credentials
-  namespace: default
-type: Opaque
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: wetty-file-credentials
+#  namespace: default
+#type: Opaque

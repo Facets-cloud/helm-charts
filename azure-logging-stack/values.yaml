@@ -1,46 +1,75 @@
-chartName: loggingstack
-tolerations:
+global:
+  chartName: loggingstack
+  tolerations:
     effect: NoSchedule
     key: kubernetes.azure.com/scalesetpriority
     operator: Equal
     value: spot
 
+logsVolume:
+  storageClassName: ccazfile
+  persistentVolumeClaims:
+    name: logs-nfs
+    accessMode: ReadWriteMany
+    storageSize: 20Gi
 
-persistentVolumeClaims:
-  name: logs-nfs
-  accessMode: ReadWriteMany
-  storageSize: 10Gi
+wettySsh:
+  name: wetty-ssh
+  image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-ssh-host:30a4b00-16
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 1Gi
+  wettysshAdditionalVolumes:
+    enabled: false
+    pvcNames:
+      - name: logs-vol
+        mountPath: /var/log/efs
+        claimName: logs-pvc
 
-
-
-priorityClass:
-  name: infra-critical-daemonset
-  value: 1500
-storageClassName: ccazfile
-
-loggingStack:
-  wettySsh:
-    name: wetty-ssh
-    image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-ssh-host:30a4b00-16
-  fluentd:
-    name: fluentd
-    image:
-      repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/fluentd-efs:new
+fluentd:
+  name: fluentd
+  image:
+    repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/fluentd-efs:new
+  imagePullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "0.25"
+      memory: 1Gi
+  restartPolicy: Always
+  priorityClass:
+    name: infra-critical-daemonset
 
 
 wetty:
     name: wetty
     replicaCount: 1
     image:
-      repository: "313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10"
-      pullPolicy: "IfNotPresent"
-    deploymentStrategy: "RollingUpdate"
-    imagePullPolicy: "IfNotPresent"
+      repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10
+      pullPolicy: IfNotPresent
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 20
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      tcpSocket:
+        port: 3000
+      timeoutSeconds: 10
+    readinessProbe:
+      failureThreshold: 20
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      tcpSocket:
+        port: 3000
+      timeoutSeconds: 10
+    resources:
+      limits:
+        cpu: 125m
+        memory: 512Mi
+      requests:
+        cpu: 125m
+        memory: 512Mi
     shcommand: "yarn start --sshhost wetty-ssh"
 
-wettysshAdditionalVolumes:
-  enabled: false
-  pvcNames:
-    - name: logs-vol
-      mountPath: /var/log/efs
-      claimName: logs-pvc

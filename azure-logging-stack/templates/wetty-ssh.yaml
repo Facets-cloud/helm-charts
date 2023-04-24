@@ -4,14 +4,14 @@ metadata:
   annotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
-    app: {{ .Values.chartName }}-wetty-ssh
-  name: {{ .Values.chartName }}-wetty-ssh
+    app: {{ .Values.global.chartName }}-wetty-ssh
+  name: {{ .Values.global.chartName }}-wetty-ssh
   namespace: default
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Values.chartName }}-wetty-ssh
+      app: {{ .Values.global.chartName }}-wetty-ssh
       release: wetty-ssh
   serviceName: wetty-ssh
   template:
@@ -20,57 +20,45 @@ spec:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         sidecar.istio.io/inject: "true"
       labels:
-        app: {{ .Values.chartName }}-wetty-ssh
+        app: {{ .Values.global.chartName }}-wetty-ssh
         release: wetty-ssh
     spec:
       containers:
-        - image: {{ .Values.loggingStack.wettySsh.image }}
+        - image: {{ .Values.wettySsh.image }}
           imagePullPolicy: IfNotPresent
-          name: wetty-ssh
+          name: {{ .Values.wettySsh.name }}
           ports:
           - containerPort: 22
             name: ssh
             protocol: TCP
           resources:
             limits:
-              cpu: "2"
-              memory: 4Gi
+              cpu: {{ .Values.wettySsh.resources.limits.cpu }}
+              memory: {{ .Values.wettySsh.resources.limits.memory }}
           volumeMounts:
-          - mountPath: /var/log/dumps
-            name: dump-vol
-          - mountPath: /etc/credentialfiles/
-            name: wetty-ssh-file-credentials-vol
           - mountPath: /mnt/data
             name: data-vol
-          - mountPath: /var/log/alpha/efs
-            name: logs-vol-alpha
+          - mountPath: /var/log/efs
+            name: logs-vol-azure-files
             readOnly: true
-          {{- if .Values.wettysshAdditionalVolumes.enabled }}
-          {{- range .Values.wettysshAdditionalVolumes.pvcNames }}
+          {{- if .Values.wettySsh.wettysshAdditionalVolumes.enabled }}
+          {{- range .Values.wettySsh.wettysshAdditionalVolumes.pvcNames }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
             readOnly: true
           {{- end }}
           {{- end }}
       tolerations:
-      - effect: NoSchedule
-        key: kubernetes.azure.com/scalesetpriority
-        operator: Equal
-        value: spot
+      - effect: {{ .Values.global.tolerations.effect }}
+        key: {{ .Values.global.tolerations.key }}
+        operator: {{ .Values.global.tolerations.operator }}
+        value: {{ .Values.global.tolerations.value }}
       volumes:
-      - hostPath:
-          path: /var/log/dumps/wetty-ssh
-          type: DirectoryOrCreate
-        name: dump-vol
-      - name: wetty-ssh-file-credentials-vol
-        secret:
-          defaultMode: 420
-          secretName: wetty-ssh-file-credentials
-      - name: logs-vol-alpha
+      - name: logs-vol-azure-files
         persistentVolumeClaim:
-          claimName: {{ .Values.persistentVolumeClaims.name }}-pvc
-      {{- if .Values.wettysshAdditionalVolumes.enabled }}
-      {{- range .Values.wettysshAdditionalVolumes.pvcNames }}
+          claimName: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
+      {{- if .Values.wettySsh.wettysshAdditionalVolumes.enabled }}
+      {{- range .Values.wettySsh.wettysshAdditionalVolumes.pvcNames }}
       - name: {{ .name }}
         persistentVolumeClaim:
           claimName: {{ .claimName }}
@@ -99,7 +87,7 @@ kind: Service
 metadata:
   annotations:
   labels:
-    app: {{ .Values.chartName }}-wetty-ssh
+    app: {{ .Values.global.chartName }}-wetty-ssh
     release: wetty-ssh
   name: wetty-ssh
   namespace: default
@@ -114,17 +102,18 @@ spec:
       protocol: TCP
       targetPort: 22
   selector:
-    app: wetty-ssh
+    app: {{ .Values.global.chartName }}-wetty-ssh
     release: wetty-ssh
   type: ClusterIP
 
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: wetty-ssh-file-credentials
-  namespace: default
-type: Opaque
+#For testing env when required secrets are not available
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: wetty-ssh-file-credentials
+#  namespace: default
+#type: Opaque
 
 ---
 # Testing scenario in env where logs-pvc is available to have it mounted in wetty-ssh

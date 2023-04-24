@@ -4,48 +4,48 @@ metadata:
   annotations:
     cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
   labels:
-    app: {{ .Values.chartName }}-fluentd
-  name: {{ .Values.chartName }}-fluentd
+    app: {{ .Values.global.chartName }}-fluentd
+  name: {{ .Values.global.chartName }}-fluentd
   namespace: default
 spec:
   selector:
     matchLabels:
-      app: {{ .Values.chartName }}-fluentd
+      app: {{ .Values.global.chartName }}-fluentd
       release: fluentd
   template:
     metadata:
       annotations:
         cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
       labels:
-        app: {{ .Values.chartName }}-fluentd
-        name: {{ .Values.chartName }}-fluentd
+        app: {{ .Values.global.chartName }}-fluentd
+        name: {{ .Values.global.chartName }}-fluentd
         release: fluentd
     spec:
       containers:
-        - image: {{ .Values.loggingStack.fluentd.image.repository }}
-          imagePullPolicy: IfNotPresent
-          name: {{ .Values.chartName }}-fluentd
+        - image: {{ .Values.fluentd.image.repository }}
+          imagePullPolicy: {{ .Values.fluentd.imagePullPolicy }}
+          name: {{ .Values.global.chartName }}-fluentd
           env:
           - name: FLUENTD_ARGS
             value: "--no-supervisor -v"
           resources:
             limits:
-              cpu: 250m
-              memory: 1Gi
+              cpu: {{ .Values.fluentd.resources.limits.cpu }}
+              memory: {{ .Values.fluentd.resources.limits.memory }}
           volumeMounts:
             - mountPath: /var/log/efs
               name: logs-vol
-      priorityClassName: {{ .Values.priorityClass.name }}
-      restartPolicy: Always
+      priorityClassName: {{ .Values.fluentd.priorityClass.name }}
+      restartPolicy: {{ .Values.fluentd.restartPolicy }}
       tolerations:
-        - effect: {{ .Values.tolerations.effect }}
-          key: {{ .Values.tolerations.key }}
-          operator: {{ .Values.tolerations.operator }}
-          value: {{ .Values.tolerations.value }}
+        - effect: {{ .Values.global.tolerations.effect }}
+          key: {{ .Values.global.tolerations.key }}
+          operator: {{ .Values.global.tolerations.operator }}
+          value: {{ .Values.global.tolerations.value }}
       volumes:
         - name: logs-vol
           persistentVolumeClaim:
-            claimName: {{ .Values.persistentVolumeClaims.name }}-pvc
+            claimName: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
   updateStrategy:
     rollingUpdate:
       maxSurge: 0
@@ -53,10 +53,17 @@ spec:
     type: RollingUpdate
 
 ---
-#apiVersion: scheduling.k8s.io/v1
-#kind: PriorityClass
-#metadata:
-#  name: {{ .Values.priorityClass.name }}
-#preemptionPolicy: PreemptLowerPriority
-#value: {{ .Values.priorityClass.value }}
+# PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
+spec:
+  accessModes:
+    - {{ .Values.logsVolume.persistentVolumeClaims.accessMode }}
+  storageClassName: {{ .Values.logsVolume.storageClassName }}
+  resources:
+    requests:
+      storage: {{ .Values.logsVolume.persistentVolumeClaims.storageSize }}
+
 
