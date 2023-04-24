@@ -30,7 +30,7 @@ jobs:
         with:
           publish_dir: charts
           keep_files: true
-          force_orphan: true
+          force_orphan: false
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           branch: ${{ env.BRANCH }}
 
