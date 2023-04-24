@@ -90,7 +90,6 @@ wettySsh:
 | `logsVolume.persistentVolumeClaims.accessMode` | Access mode for the persistent volume claim                                         | `ReadWriteMany` |
 | `logsVolume.persistentVolumeClaims.storageSize` | Requested storage size for the persistent volume claim                                | `20Gi`      |
 
-
 ## Usage
 
 ```bash
