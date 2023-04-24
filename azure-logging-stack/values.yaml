@@ -6,10 +6,7 @@ global:
     value: spot
 
 logsVolume:
-  storageClassName: ccazfile
-  persistentVolumeClaims:
-    name: logs-nfs
-    accessMode: ReadWriteMany
+  persistentVolumeClaim:
     storageSize: 20Gi
 
 wettySsh:

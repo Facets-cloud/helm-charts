@@ -51,7 +51,7 @@ spec:
       volumes:
       - name: logs-vol-azure-files
         persistentVolumeClaim:
-          claimName: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
+          claimName: {{ .Release.Name }}-pvc
       {{- if .Values.wettySsh.wettysshAdditionalVolumes.enabled }}
       {{- range .Values.wettySsh.wettysshAdditionalVolumes.pvcNames }}
       - name: {{ .name }}
@@ -84,7 +84,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty-ssh
     release: wetty-ssh
-  name: wetty-ssh
+  name: {{ .Release.Name }}-wetty-ssh
   namespace: default
 spec:
   internalTrafficPolicy: Cluster

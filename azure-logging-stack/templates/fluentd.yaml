@@ -30,7 +30,7 @@ spec:
               memory: {{ .Values.fluentd.resources.limits.memory }}
           volumeMounts:
             - mountPath: /var/log/efs
-              name: logs-vol
+              name: logs-vol-azure-files
       priorityClassName: {{ .Values.fluentd.priorityClass.name }}
       restartPolicy: {{ .Values.fluentd.restartPolicy }}
       tolerations:
@@ -39,9 +39,9 @@ spec:
           operator: {{ .Values.global.tolerations.operator }}
           value: {{ .Values.global.tolerations.value }}
       volumes:
-        - name: logs-vol
+        - name: logs-vol-azure-files
           persistentVolumeClaim:
-            claimName: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
+            claimName: {{ .Release.Name }}-pvc
   updateStrategy:
     rollingUpdate:
       maxSurge: 0
@@ -53,11 +53,11 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Values.logsVolume.persistentVolumeClaims.name }}-pvc
+  name: {{ .Release.Name }}-pvc
 spec:
   accessModes:
-    - {{ .Values.logsVolume.persistentVolumeClaims.accessMode }}
-  storageClassName: {{ .Values.logsVolume.storageClassName }}
+    - ReadWriteMany
+  storageClassName: ccazfile
   resources:
     requests:
-      storage: {{ .Values.logsVolume.persistentVolumeClaims.storageSize }}
+      storage: {{ .Values.logsVolume.persistentVolumeClaim.storageSize }}

@@ -81,13 +81,10 @@ wettySsh:
 
 # logsVolume
 
-| Parameter                           | Description                                                                                   | Default    |
-| ----------------------------------- | --------------------------------------------------------------------------------------------- | ---------- |
-| `logsVolume.storageClassName`       | Name of the storage class to use for the persistent volume claim                              | `ccazfile` |
-| `logsVolume.persistentVolumeClaims` | Configuration for the persistent volume claim                                                  |            |
-| `logsVolume.persistentVolumeClaims.name` | Name of the persistent volume claim                                                     | `logs-nfs` |
-| `logsVolume.persistentVolumeClaims.accessMode` | Access mode for the persistent volume claim                                         | `ReadWriteMany` |
-| `logsVolume.persistentVolumeClaims.storageSize` | Requested storage size for the persistent volume claim                                | `20Gi`      |
+| Parameter                                       | Description                                            | Default    |
+|-------------------------------------------------|--------------------------------------------------------|------------|
+| `logsVolume.persistentVolumeClaims`             | Configuration for the persistent volume claim          |            |
+| `logsVolume.persistentVolumeClaims.storageSize` | Requested storage size for the persistent volume claim | `20Gi`     |
 
 ## Usage
 
