@@ -4,7 +4,6 @@ A Helm chart to add logging substack that includes fluentd, wetty and wetty-ssh 
 
 ## Values
 
-- `global.chartName` is the value for name of the chart 
 - Toleration used for azure spot nodes: 
 ```yaml
 global:
