@@ -37,4 +37,11 @@ cronConfig:
   schedule: "30 15 * * *"
   command: "kubectl get pod --field-selector=status.phase='Succeeded'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod"
 
+tolerations: 
+  - key: kubernetes.azure.com/scalesetpriority
+    operator: "Equal"
+    value: spot
+    effect: "NoSchedule" 
+
+
 ```
