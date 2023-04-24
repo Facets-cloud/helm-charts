@@ -17,7 +17,7 @@ The following table lists the values accepted by the chart
 | `cronName`        | Name of the cronjob to be created       | `null`  |
 | `schedule`      | The schedule at which the cronjob should run               | `null`  |
 | `command` | The command that a cronjob should run      | `null`  |
-
+| `tolerations` | The tolerations to be added to the pod created by cronjob     | `null`  |
 ## Usage
 
 ```bash

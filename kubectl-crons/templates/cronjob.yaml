@@ -23,6 +23,10 @@ spec:
         spec:
           restartPolicy: Never
           serviceAccountName: {{ $.Release.Name }}
+          {{- with .tolerations }}
+          tolerations:
+            {{ . | toYaml | nindent 10 }}
+          {{- end }}
           containers:
             - name: {{ $.Release.Name }}
               image: "bitnami/kubectl:1.16"
