@@ -9,6 +9,7 @@ The following table lists the values accepted by the chart
 | Key                | Description                                                                                                                           | Default               |
 |--------------------|---------------------------------------------------------------------------------------------------------------------------------------| --------------------- |
 | `cronConfig` | Map of objects. The key of the map should be the name of the configurations to be used and the value should be the desired value for the cronjob to run | `{}`                  |
+| `tolerations` | The tolerations to be added to the pod created by cronjob     | `null`  |
 
 ## Cronjob Configurations
 
@@ -35,5 +36,12 @@ cronConfig:
 - cronName: "cleanup-completed-success-pods"
   schedule: "30 15 * * *"
   command: "kubectl get pod --field-selector=status.phase='Succeeded'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod"
+
+tolerations: 
+  - key: kubernetes.azure.com/scalesetpriority
+    operator: "Equal"
+    value: spot
+    effect: "NoSchedule" 
+
 
 ```
