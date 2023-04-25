@@ -13,9 +13,9 @@ spec:
       release: wetty
   strategy:
     rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
+      maxSurge: {{ .Values.wetty.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.wetty.strategy.rollingUpdate.maxUnavailable }}
+    type: {{ .Values.wetty.strategy.type }}
   template:
     metadata:
       labels:

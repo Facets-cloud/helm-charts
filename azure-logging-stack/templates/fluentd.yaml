@@ -44,9 +44,9 @@ spec:
             claimName: {{ .Release.Name }}-pvc
   updateStrategy:
     rollingUpdate:
-      maxSurge: 0
-      maxUnavailable: 1
-    type: RollingUpdate
+      maxSurge: {{ .Values.fluentd.updateStrategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.fluentd.updateStrategy.rollingUpdate.maxUnavailable }}
+    type: {{ .Values.fluentd.updateStrategy.type }}
 
 ---
 # PVC
