@@ -21,6 +21,7 @@ jobs:
           ./linux-amd64/helm package kubectl-crons
           ./linux-amd64/helm package scheduled-deployment-scaler
           ./linux-amd64/helm package windows-exporter
+          ./linux-amd64/helm package facets-notification-controller
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
