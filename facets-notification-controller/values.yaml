@@ -37,3 +37,7 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+env: {}
+  # asdasdads: asdasdasdas
+  # asdasdasqweq: asdasffsd
