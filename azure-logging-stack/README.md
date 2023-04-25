@@ -21,8 +21,7 @@ To enable the utilisation of existing volume in wetty-ssh resource.
 ```yaml
 wettySsh:
   wettysshAdditionalVolumes:
-    enabled: true
-    pvcNames:
+    pvcAdditional:
       - name: logs-vol
         mountPath: /var/log/efs
         claimName: logs-pvc
@@ -36,10 +35,10 @@ wettySsh:
 | `wettySsh.resources.limits.cpu`                            | Maximum CPU usage allowed for the container                                                         | `0.5`                                                                    |
 | `wettySsh.resources.limits.memory`                         | Maximum memory usage allowed for the container                                                      | `1Gi`                                                                    |
 | `wettySsh.wettysshAdditionalVolumes.enabled`               | Enable additional volumes for the Wetty SSH container                                               | `false`                                                                  |
-| `wettySsh.wettysshAdditionalVolumes.pvcNames`              | List of additional volumes to mount in the Wetty SSH container, specified as a list of dictionaries | `[]`                                                                     |
-| `wettySsh.wettysshAdditionalVolumes.pvcNames[0].name`      | Name of the additional volume to mount in the container                                             | `logs-vol`                                                               |
-| `wettySsh.wettysshAdditionalVolumes.pvcNames[0].mountPath` | Mount path of the additional volume in the container                                                | `/var/log/efs`                                                           |
-| `wettySsh.wettysshAdditionalVolumes.pvcNames[0].claimName` | Name of the Persistent Volume Claim (PVC) used for the additional volume                            | `logs-pvc`                                                               |
+| `wettySsh.wettysshAdditionalVolumes.pvcAdditional`              | List of additional volumes to mount in the Wetty SSH container, specified as a list of dictionaries | `[]`                                                                     |
+| `wettySsh.wettysshAdditionalVolumes.pvcAdditional[0].name`      | Name of the additional volume to mount in the container                                             | NA                                                                       |
+| `wettySsh.wettysshAdditionalVolumes.pvcNampvcAdditionales[0].mountPath` | Mount path of the additional volume in the container                                                | NA                                                                       |
+| `wettySsh.wettysshAdditionalVolumes.pvcAdditional[0].claimName` | Name of the Persistent Volume Claim (PVC) used for the additional volume                            | NA                                                                       |
 
 
 # wetty 
