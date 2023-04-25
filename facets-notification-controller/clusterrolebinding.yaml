@@ -1,0 +1,12 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "facets-notification-crb"
+subjects:
+- kind: ServiceAccount
+  name: "facets-notification-sa"
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: "facets-notification-cr"
+  apiGroup: rbac.authorization.k8s.io

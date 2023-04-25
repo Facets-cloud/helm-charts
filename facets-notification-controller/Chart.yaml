@@ -1,0 +1,10 @@
+apiVersion: v2
+name: facets-notification-controller
+description: A Helm chart for facets notification controller
+type: application
+version: 0.1.0
+appVersion: "1.1.0"
+home: https://facets-cloud.github.io
+maintainers:
+  - name: Vishnu Kadavarath Viswambharan
+    email: vishnu.kv@facets.cloud
