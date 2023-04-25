@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty
   name: {{ .Release.Name }}-wetty
-  namespace: default
+  namespace: {{ .Values.wetty.namespace }}
 spec:
   replicas: {{ .Values.wetty.replicaCount }}
   selector:
@@ -88,7 +88,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty
   name: {{ .Release.Name }}-wetty
-  namespace: default
+  namespace: {{ .Values.wetty.namespace }}
 spec:
   internalTrafficPolicy: Cluster
   ipFamilies:

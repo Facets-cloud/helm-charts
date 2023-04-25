@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty-ssh
   name: {{ .Release.Name }}-wetty-ssh
-  namespace: default
+  namespace: {{ .Values.wettySsh.namespace }}
 spec:
   replicas: 1
   selector:
@@ -85,7 +85,7 @@ metadata:
     app: {{ .Release.Name }}-wetty-ssh
     release: wetty-ssh
   name: {{ .Release.Name }}-wetty-ssh
-  namespace: default
+  namespace: {{ .Values.wettySsh.namespace }}
 spec:
   internalTrafficPolicy: Cluster
   ipFamilies:

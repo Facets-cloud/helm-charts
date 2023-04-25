@@ -11,20 +11,25 @@ logsVolume:
 
 wettySsh:
   name: wetty-ssh
+  namespace: default
   image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-ssh-host:30a4b00-16
   resources:
     limits:
       cpu: "0.5"
       memory: 1Gi
   wettysshAdditionalVolumes:
-    enabled: false
+    enabled: true
     pvcNames:
       - name: logs-vol
         mountPath: /var/log/efs
         claimName: logs-pvc
+      - name: logs-vol2
+        mountPath: /var/log/efs2
+        claimName: logs-
 
 fluentd:
   name: fluentd
+  namespace: default
   image:
     repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/fluentd-efs:new
   imagePullPolicy: IfNotPresent
@@ -39,6 +44,7 @@ fluentd:
 
 wetty:
     name: wetty
+    namespace: default
     replicaCount: 1
     image:
       repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10
