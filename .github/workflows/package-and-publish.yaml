@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  BRANCH: gh-pages
+  BRANCH: wetty-azure
 
 jobs:
   package:
@@ -23,7 +23,6 @@ jobs:
           ./linux-amd64/helm package windows-exporter
           ./linux-amd64/helm package facets-notification-controller
           ./linux-amd64/helm package azure-logging-stack
-          ./linux-amd64/helm package facets-notification-controller
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
