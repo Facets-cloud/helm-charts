@@ -3,7 +3,7 @@ replicaCount: 1
 
 image:
   repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/facets-notification-controller
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
 
