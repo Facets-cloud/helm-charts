@@ -9,6 +9,6 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["get", "list", "watch", "patch", "annotate"]
-- apiGroups: [""]
+- apiGroups: ["extensions", "apps"]
   resources: ["deployments", "replicasets", "statefulsets", "cronjobs"]
   verbs: ["get", "list", "watch"]
