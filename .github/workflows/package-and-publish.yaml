@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  BRANCH: wetty-azure
+  BRANCH: gh-pages
 
 jobs:
   package:
