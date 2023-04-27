@@ -23,11 +23,9 @@ wettySsh:
       cpu: "0.5"
       memory: 1Gi
   replica: 1
-  wettysshAdditionalVolumes:
-    Pvc:
-      name: data-vol
-      storage: 5Gi
-    pvcAdditional: []
+  dataVolume:
+    size: 5Gi
+  pvcAdditional: []
 
 fluentd:
   name: fluentd

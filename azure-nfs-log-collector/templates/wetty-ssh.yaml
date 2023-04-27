@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty-ssh
   name: {{ .Release.Name }}-wetty-ssh
-  namespace: {{ .Values.wettySsh.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.wettySsh.replica }}
   selector:
@@ -21,7 +21,7 @@ spec:
       containers:
         - image: {{ .Values.wettySsh.image }}
           imagePullPolicy: {{ .Values.wettySsh.imagePullPolicy }}
-          name: {{ .Values.wettySsh.name }}
+          name: wetty-ssh
           ports:
           - containerPort: 22
             name: ssh
@@ -36,7 +36,7 @@ spec:
           - mountPath: /var/log/efs
             name: logs-vol-azure-files
             readOnly: true
-          {{- range .Values.wettySsh.wettysshAdditionalVolumes.pvcAdditional }}
+          {{- range .Values.wettySsh.pvcAdditional }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
             readOnly: true
@@ -50,7 +50,7 @@ spec:
       - name: logs-vol-azure-files
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-pvc
-      {{- range .Values.wettySsh.wettysshAdditionalVolumes.pvcAdditional }}
+      {{- range .Values.wettySsh.pvcAdditional }}
       - name: {{ .name }}
         persistentVolumeClaim:
           claimName: {{ .claimName }}
@@ -63,13 +63,13 @@ spec:
     - apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
-        name: {{ .Values.wettySsh.wettysshAdditionalVolumes.Pvc.name }}
+        name: data-vol
       spec:
         accessModes:
           - ReadWriteOnce
         resources:
           requests:
-            storage: {{ .Values.wettySsh.wettysshAdditionalVolumes.Pvc.storage }}
+            storage: {{ .Values.wettySsh.dataVolume.size }}
 
 ---
 # Service wetty-ssh

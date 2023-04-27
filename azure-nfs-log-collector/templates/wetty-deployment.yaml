@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty
   name: {{ .Release.Name }}-wetty
-  namespace: {{ .Values.wetty.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: {{ .Values.wetty.replicaCount }}
   selector:

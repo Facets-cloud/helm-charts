@@ -4,7 +4,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-fluentd
   name: {{ .Release.Name }}-fluentd
-  namespace: {{ .Values.fluentd.namespace }}
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
@@ -20,7 +20,7 @@ spec:
       containers:
         - image: {{ .Values.fluentd.image.repository }}
           imagePullPolicy: {{ .Values.fluentd.imagePullPolicy }}
-          name: {{ .Release.Name }}-fluentd
+          name: fluentd
           env:
           - name: FLUENTD_ARGS
             value: "--no-supervisor -v"
