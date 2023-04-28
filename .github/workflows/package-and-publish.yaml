@@ -22,7 +22,7 @@ jobs:
           ./linux-amd64/helm package scheduled-deployment-scaler
           ./linux-amd64/helm package windows-exporter
           ./linux-amd64/helm package facets-notification-controller
-          ./linux-amd64/helm package azure-logging-stack
+          ./linux-amd64/helm package azure-nfs-log-collector
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
