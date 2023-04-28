@@ -31,14 +31,42 @@ spec:
           volumeMounts:
             - mountPath: /var/log/efs
               name: logs-vol-azure-files
+            - mountPath: /var/lib/docker/containers
+              name: varlibdockercontainers
+              readOnly: true
+            - mountPath: /host/lib
+              name: libsystemddir
+              readOnly: true
+            - mountPath: /var/log
+              name: varlog
+            - mountPath: /var/log/dumps
+              name: dump-vol
       priorityClassName: {{ .Values.fluentd.priorityClass.name }}
       restartPolicy: {{ .Values.fluentd.restartPolicy }}
+      serviceAccount: fluentd-app-view
+      serviceAccountName: fluentd-app-view
       tolerations:
         - effect: {{ .Values.global.tolerations.effect }}
           key: {{ .Values.global.tolerations.key }}
           operator: {{ .Values.global.tolerations.operator }}
           value: {{ .Values.global.tolerations.value }}
       volumes:
+        - hostPath:
+            path: /var/lib/docker/containers
+            type: ""
+          name: varlibdockercontainers
+        - hostPath:
+            path: /usr/lib64
+            type: ""
+          name: libsystemddir
+        - hostPath:
+            path: /var/log
+            type: ""
+          name: varlog
+        - hostPath:
+            path: /var/log/dumps/fluentd
+            type: DirectoryOrCreate
+          name: dump-vol
         - name: logs-vol-azure-files
           persistentVolumeClaim:
             claimName: {{ .Release.Name }}-pvc
@@ -61,3 +89,19 @@ spec:
   resources:
     requests:
       storage: {{ .Values.logsVolume.persistentVolumeClaim.storageSize }}
+
+---
+# SA
+apiVersion: v1
+imagePullSecrets:
+{{- range .Values.fluentd.imagePullSecrets }}
+  - name: {{ .name}}
+{{- end }}
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: fluentd-app-view
+  namespace: default
+secrets:
+  - name: fluentd-app-view-token-9jdsx

@@ -26,7 +26,7 @@ spec:
         - command:
             - sh
             - -c
-            - {{ .Values.wetty.shcommand }}
+            - yarn start --sshhost {{ .Release.Name }}-wetty-ssh
           name: wetty
           image: {{ .Values.wetty.image.repository }}
           imagePullPolicy: {{ .Values.wetty.image.pullPolicy }}

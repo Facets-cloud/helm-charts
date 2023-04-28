@@ -27,6 +27,7 @@ wettySsh:
     size: 5Gi
   pvcAdditional: []
 
+
 fluentd:
   name: fluentd
   namespace: default
@@ -45,6 +46,9 @@ fluentd:
       maxSurge: 0
       maxUnavailable: 1
     type: RollingUpdate
+  imagePullSecrets:
+    - name: aws-ecr-token-default
+    - name: aws-ecr-token-facets-config-auto
 
 
 wetty:
@@ -83,5 +87,4 @@ wetty:
       requests:
         cpu: 125m
         memory: 512Mi
-    shcommand: "yarn start --sshhost wetty-ssh"
 
