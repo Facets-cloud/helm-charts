@@ -1,0 +1,9 @@
+apiVersion: v2
+name: azure-nfs-log-collector
+description: A Helm chart for azure logging substack
+version: 0.1.0
+appVersion: "1.0"
+home: https://facets-cloud.github.io
+maintainers:
+  - name: Rohit Raveendran
+    email: rohit@facets.cloud

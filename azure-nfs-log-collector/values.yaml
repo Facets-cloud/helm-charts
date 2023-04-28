@@ -1,0 +1,90 @@
+global:
+  tolerations:
+    effect: NoSchedule
+    key: kubernetes.azure.com/scalesetpriority
+    operator: Equal
+    value: spot
+
+logsVolume:
+  persistentVolumeClaim:
+    storageSize: 20Gi
+
+wettySsh:
+  name: wetty-ssh
+  namespace: default
+  image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-ssh-host:30a4b00-16
+  imagePullPolicy: IfNotPresent
+  updateStrategy:
+    rollingUpdate:
+      partition: 0
+    type: RollingUpdate
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 1Gi
+  replica: 1
+  dataVolume:
+    size: 5Gi
+  pvcAdditional: []
+
+
+fluentd:
+  name: fluentd
+  namespace: default
+  image:
+    repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/fluentd-efs:new
+  imagePullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: "0.25"
+      memory: 1Gi
+  restartPolicy: Always
+  priorityClass:
+    name: infra-critical-daemonset
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  imagePullSecrets:
+    - name: aws-ecr-token-default
+    - name: aws-ecr-token-facets-config-auto
+
+
+wetty:
+    name: wetty
+    namespace: default
+    replicaCount: 1
+    image:
+      repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/wetty-app:6c9d009-10
+      pullPolicy: IfNotPresent
+    imagePullPolicy: IfNotPresent
+    strategy:
+      rollingUpdate:
+        maxUnavailable: 25%
+        maxSurge: 25%
+      type: RollingUpdate
+    livenessProbe:
+      failureThreshold: 20
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      tcpSocket:
+        port: 3000
+      timeoutSeconds: 10
+    readinessProbe:
+      failureThreshold: 20
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      successThreshold: 1
+      tcpSocket:
+        port: 3000
+      timeoutSeconds: 10
+    resources:
+      limits:
+        cpu: 125m
+        memory: 512Mi
+      requests:
+        cpu: 125m
+        memory: 512Mi
+

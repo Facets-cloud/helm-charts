@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Release.Name }}-wetty
+  name: {{ .Release.Name }}-wetty
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.wetty.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-wetty
+      release: wetty
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.wetty.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.wetty.strategy.rollingUpdate.maxUnavailable }}
+    type: {{ .Values.wetty.strategy.type }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-wetty
+        release: wetty
+    spec:
+      containers:
+        - command:
+            - sh
+            - -c
+            - yarn start --sshhost {{ .Release.Name }}-wetty-ssh
+          name: wetty
+          image: {{ .Values.wetty.image.repository }}
+          imagePullPolicy: {{ .Values.wetty.image.pullPolicy }}
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - sleep 30
+          livenessProbe:
+            failureThreshold: {{ .Values.wetty.livenessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.wetty.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wetty.livenessProbe.periodSeconds }}
+            successThreshold: {{ .Values.wetty.livenessProbe.successThreshold }}
+            tcpSocket:
+              port: {{ .Values.wetty.livenessProbe.tcpSocket.port }}
+            timeoutSeconds: {{ .Values.wetty.livenessProbe.timeoutSeconds }}
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          readinessProbe:
+            failureThreshold: {{ .Values.wetty.readinessProbe.failureThreshold }}
+            initialDelaySeconds: {{ .Values.wetty.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.wetty.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.wetty.readinessProbe.successThreshold }}
+            tcpSocket:
+              port: {{ .Values.wetty.readinessProbe.tcpSocket.port }}
+            timeoutSeconds: {{ .Values.wetty.readinessProbe.timeoutSeconds }}
+          resources:
+            limits:
+              cpu: {{ .Values.wetty.resources.limits.cpu }}
+              memory: {{ .Values.wetty.resources.limits.memory }}
+            requests:
+              cpu: {{ .Values.wetty.resources.requests.cpu }}
+              memory: {{ .Values.wetty.resources.requests.memory }}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /var/log/dumps
+              name: dump-vol
+      restartPolicy: Always
+      tolerations:
+        - effect: {{ .Values.global.tolerations.effect }}
+          key: {{ .Values.global.tolerations.key }}
+          operator: {{ .Values.global.tolerations.operator }}
+          value: {{ .Values.global.tolerations.value }}
+      volumes:
+        - hostPath:
+            path: /var/log/dumps/wetty
+            type: DirectoryOrCreate
+          name: dump-vol
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Release.Name }}-wetty
+  name: {{ .Release.Name }}-wetty
+  namespace: {{ .Values.wetty.namespace }}
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: http
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: {{ .Release.Name }}-wetty
+    release: wetty
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: wetty-file-credentials
+#  namespace: default
+#type: Opaque

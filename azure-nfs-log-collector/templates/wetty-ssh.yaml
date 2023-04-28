@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: {{ .Release.Name }}-wetty-ssh
+  name: {{ .Release.Name }}-wetty-ssh
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.wettySsh.replica }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-wetty-ssh
+      release: wetty-ssh
+  serviceName: wetty-ssh
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-wetty-ssh
+        release: wetty-ssh
+    spec:
+      containers:
+        - image: {{ .Values.wettySsh.image }}
+          imagePullPolicy: {{ .Values.wettySsh.imagePullPolicy }}
+          name: wetty-ssh
+          ports:
+          - containerPort: 22
+            name: ssh
+            protocol: TCP
+          resources:
+            limits:
+              cpu: {{ .Values.wettySsh.resources.limits.cpu }}
+              memory: {{ .Values.wettySsh.resources.limits.memory }}
+          volumeMounts:
+          - mountPath: /mnt/data
+            name: data-vol
+          - mountPath: /var/log/efs
+            name: logs-vol-azure-files
+            readOnly: true
+          {{- range .Values.wettySsh.pvcAdditional }}
+          - name: {{ .name }}
+            mountPath: {{ .mountPath }}
+            readOnly: true
+          {{- end }}
+      tolerations:
+      - effect: {{ .Values.global.tolerations.effect }}
+        key: {{ .Values.global.tolerations.key }}
+        operator: {{ .Values.global.tolerations.operator }}
+        value: {{ .Values.global.tolerations.value }}
+      volumes:
+      - name: logs-vol-azure-files
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-pvc
+      {{- range .Values.wettySsh.pvcAdditional }}
+      - name: {{ .name }}
+        persistentVolumeClaim:
+          claimName: {{ .claimName }}
+      {{- end }}
+  updateStrategy:
+    rollingUpdate:
+      partition: {{ .Values.wettySsh.updateStrategy.rollingUpdate.partition }}
+    type: {{ .Values.wettySsh.updateStrategy.type }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data-vol
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.wettySsh.dataVolume.size }}
+
+---
+# Service wetty-ssh
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  labels:
+    app: {{ .Release.Name }}-wetty-ssh
+    release: wetty-ssh
+  name: {{ .Release.Name }}-wetty-ssh
+  namespace: {{ .Values.wettySsh.namespace }}
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+    - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+    - name: ssh
+      port: 22
+      protocol: TCP
+      targetPort: 22
+  selector:
+    app: {{ .Release.Name }}-wetty-ssh
+    release: wetty-ssh
+  type: ClusterIP
+
+---
+#For testing env when required secrets are not available
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: wetty-ssh-file-credentials
+#  namespace: default
+#type: Opaque
+
+---
+# Testing scenario in env where logs-pvc is available to have it mounted in wetty-ssh
+# If present then validation as per wettysshAdditionalVolumes is associated
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  name: new-additional-pvc
+#  namespace: default
+#spec:
+#  accessModes:
+#    - ReadWriteMany
+#  resources:
+#    requests:
+#      storage: 5Gi
+#  storageClassName: ccazfile
+
+
+
+
