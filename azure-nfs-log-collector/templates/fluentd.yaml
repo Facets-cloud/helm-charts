@@ -101,7 +101,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
-  name: fluentd-app-view
+  name: fluentd-log-app-view
   namespace: default
 secrets:
-  - name: fluentd-app-view-token-9jdsx
+  - name: fluentd-log-app-view-token-9jdsx
