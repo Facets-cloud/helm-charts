@@ -89,13 +89,51 @@ wetty:
         memory: 512Mi
 
 transferLogs:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/transfer-logs:91c0846-12
+  imagePullPolicy: IfNotPresent
+  restartPolicy: Never
+  schedule: "40 17 * * *"
+  successfulJobsHistoryLimit: 3
+  suspend: false
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
   configurations:
     PHASE_SELECTOR: "0"
     NUM_THREADS: "5"
 
 clearLogs:
+  schedule: "00 18 * * *"
+  concurrencyPolicy: Forbid
+  suspend: false
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  image: ubuntu:22.04
+  imagePullPolicy: IfNotPresent
+  restartPolicy: Never
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
   configurations:
+    RETENTION_DAYS: "1"
 
 
 compressLogs:
+  image: facetscloud/alpine-zip:3.17.1
+  imagePullPolicy: IfNotPresent
+  restartPolicy: Never
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+  concurrencyPolicy: Forbid
+  schedule: "'*/5 * * * *'"
+  suspend: false
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
   configurations:
+    COMPRESS_LOGS_BEFORE_DAYS: "2"
