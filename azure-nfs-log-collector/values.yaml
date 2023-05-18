@@ -88,3 +88,14 @@ wetty:
         cpu: 125m
         memory: 512Mi
 
+transferLogs:
+  configurations:
+    PHASE_SELECTOR: "0"
+    NUM_THREADS: "5"
+
+clearLogs:
+  configurations:
+
+
+compressLogs:
+  configurations:

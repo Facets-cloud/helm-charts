@@ -1,0 +1,80 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: clear-logs
+  name: clear-logs
+  namespace: default
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+          labels:
+            app: clear-logs
+            release: clear-logs
+        spec:
+          dnsPolicy: ClusterFirst
+          containers:
+            - command:
+                - /bin/bash
+                - -c
+                - find /var/log/efs -type f -mtime +$RETENTION_DAYS -delete -print
+              env:
+                - name: RETENTION_DAYS
+                  valueFrom:
+                    secretKeyRef:
+                      key: RETENTION_DAYS
+                      name: clear-logs-configs
+              image: ubuntu:22.04
+              imagePullPolicy: IfNotPresent
+              name: clear-logs
+              resources:
+                limits:
+                  cpu: 250m
+                  memory: 1Gi
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /etc/credentialfiles/
+                  name: clear-logs-file-credentials-vol
+                - mountPath: /var/log/dumps
+                  name: dump-vol
+                - mountPath: /var/log/efs
+                  name: logs-vol-azure-files
+          restartPolicy: Never
+          tolerations:
+            - effect: NoSchedule
+              key: kubernetes.azure.com/scalesetpriority
+              operator: Equal
+              value: spot
+          volumes:
+            - name: clear-logs-file-credentials-vol
+              secret:
+                defaultMode: 420
+                secretName: clear-logs-file-credentials
+            - hostPath:
+                path: /var/log/dumps/clear-logs
+                type: DirectoryOrCreate
+              name: dump-vol
+            - name: logs-vol-azure-files
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-pvc
+  schedule: 00 18 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: clear-logs-file-credentials
+  namespace: default
+type: Opaque
+

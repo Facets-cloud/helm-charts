@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: transferlogs
+  name: transferlogs
+  namespace: default
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+          labels:
+            app: transferlogs
+            release: transferlogs
+        spec:
+          containers:
+            - env:
+                - name: NUM_THREADS
+                  valueFrom:
+                    secretKeyRef:
+                      key: NUM_THREADS
+                      name: transferlogs-configs
+                - name: PHASE_SELECTOR
+                  valueFrom:
+                    secretKeyRef:
+                      key: PHASE_SELECTOR
+                      name: transferlogs-configs
+              image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/transfer-logs:91c0846-12
+              imagePullPolicy: IfNotPresent
+              name: transferlogs
+              resources:
+                limits:
+                  cpu: 250m
+                  memory: 1Gi
+              volumeMounts:
+                - mountPath: /etc/credentialfiles/
+                  name: transferlogs-file-credentials-vol
+                - mountPath: /var/log/dumps
+                  name: dump-vol
+                - mountPath: /var/log/backup-log/
+                  name: logs-vol-azure-files
+          restartPolicy: Never
+          tolerations:
+            - effect: {{ .Values.global.tolerations.effect }}
+              key: {{ .Values.global.tolerations.key }}
+              operator: {{ .Values.global.tolerations.operator }}
+              value: {{ .Values.global.tolerations.value }}
+          volumes:
+            - name: transferlogs-file-credentials-vol
+              secret:
+                defaultMode: 420
+                secretName: transferlogs-file-credentials
+            - hostPath:
+                path: /var/log/dumps/transferlogs
+                type: DirectoryOrCreate
+              name: dump-vol
+            - name: logs-vol-azure-files
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-pvc
+  schedule: 40 18 * * *
+  successfulJobsHistoryLimit: 3
+  suspend: false
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: transferlogs-file-credentials
+  namespace: default
+type: Opaque
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "{{ .Release.Name  }}-configs"
+type: Opaque
+data:
+  {{- range $index, $value := .Values.transferLogs.configurations }}
+    {{ $index }}: {{ $value | default "" | b64enc | default ("" | quote) }}
+  {{- end }}
