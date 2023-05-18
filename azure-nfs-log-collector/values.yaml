@@ -131,7 +131,7 @@ compressLogs:
       cpu: 250m
       memory: 1Gi
   concurrencyPolicy: Forbid
-  schedule: "'*/5 * * * *'"
+  schedule: "00 17 * * *"
   suspend: false
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
