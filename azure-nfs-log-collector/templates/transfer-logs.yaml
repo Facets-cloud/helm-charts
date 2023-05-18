@@ -2,22 +2,20 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   labels:
-    app: transferlogs
-  name: transferlogs
-  namespace: default
+    app: {{ .Release.Name }}-transferlogs
+  name: {{ .Release.Name }}-transferlogs
+  namespace: {{ .Release.Namespace }}
 spec:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 3
+  concurrencyPolicy: {{ .Values.transferLogs.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.transferLogs.failedJobsHistoryLimit }}
   jobTemplate:
-    metadata:
-      creationTimestamp: null
     spec:
       template:
         metadata:
           annotations:
             cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
           labels:
-            app: transferlogs
+            app: {{ .Release.Name }}-transferlogs
             release: transferlogs
         spec:
           containers:
@@ -32,13 +30,13 @@ spec:
                     secretKeyRef:
                       key: PHASE_SELECTOR
                       name: transferlogs-configs
-              image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/transfer-logs:91c0846-12
-              imagePullPolicy: IfNotPresent
+              image: {{ .Values.transferLogs.image }}
+              imagePullPolicy: {{ .Values.transferLogs.imagePullPolicy }}
               name: transferlogs
               resources:
                 limits:
-                  cpu: 250m
-                  memory: 1Gi
+                  cpu: {{ .Values.transferLogs.resources.limits.cpu }}
+                  memory: {{ .Values.transferLogs.resources.limits.memory }}
               volumeMounts:
                 - mountPath: /etc/credentialfiles/
                   name: transferlogs-file-credentials-vol
@@ -46,7 +44,7 @@ spec:
                   name: dump-vol
                 - mountPath: /var/log/backup-log/
                   name: logs-vol-azure-files
-          restartPolicy: Never
+          restartPolicy: {{ .Values.transferLogs.restartPolicy }}
           tolerations:
             - effect: {{ .Values.global.tolerations.effect }}
               key: {{ .Values.global.tolerations.key }}
@@ -64,9 +62,9 @@ spec:
             - name: logs-vol-azure-files
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-pvc
-  schedule: 40 18 * * *
-  successfulJobsHistoryLimit: 3
-  suspend: false
+  schedule: {{ .Values.transferLogs.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.transferLogs.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.transferLogs.suspend }}
 
 ---
 apiVersion: v1
@@ -80,7 +78,7 @@ type: Opaque
 apiVersion: v1
 kind: Secret
 metadata:
-  name: "{{ .Release.Name  }}-configs"
+  name: transferlogs-configs
 type: Opaque
 data:
   {{- range $index, $value := .Values.transferLogs.configurations }}

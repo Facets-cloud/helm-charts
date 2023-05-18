@@ -2,12 +2,12 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   labels:
-    app: compress-logs
-  name: compress-logs
-  namespace: default
+    app: {{ .Release.Name }}-compress-logs
+  name: {{ .Release.Name }}-compress-logs
+  namespace: {{ .Release.Namespace }}
 spec:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 3
+  concurrencyPolicy: {{ .Values.compressLogs.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.compressLogs.failedJobsHistoryLimit }}
   jobTemplate:
     metadata:
     spec:
@@ -16,7 +16,7 @@ spec:
           annotations:
             cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
           labels:
-            app: compress-logs
+            app: {{ .Release.Name }}-compress-logs
             release: compress-logs
         spec:
           containers:
@@ -34,13 +34,13 @@ spec:
                   zip_file="${1%/*}/${pod}_${day}.zip"; [ -f "$zip_file" ] && cmd="zip
                   -j -u $zip_file $1" || cmd="zip -j $zip_file $1"; $cmd; rm "$1"' _ {}
                   \;
-              image: facetscloud/alpine-zip:3.17.1
-              imagePullPolicy: IfNotPresent
+              image: {{ .Values.compressLogs.image }}
+              imagePullPolicy: {{ .Values.compressLogs.imagePullPolicy }}
               name: compress-logs
               resources:
                 limits:
-                  cpu: 250m
-                  memory: 1Gi
+                  cpu: {{ .Values.compressLogs.resources.limits.cpu }}
+                  memory: {{ .Values.compressLogs.resources.limits.memory }}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
               volumeMounts:
@@ -50,7 +50,7 @@ spec:
                   name: dump-vol
                 - mountPath: /var/log/efs/
                   name: logs-vol-azure-files
-          restartPolicy: Never
+          restartPolicy: {{ .Values.compressLogs.restartPolicy }}
           tolerations:
             - effect: {{ .Values.global.tolerations.effect }}
               key: {{ .Values.global.tolerations.key }}
@@ -68,9 +68,9 @@ spec:
             - name: logs-vol-azure-files
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-pvc
-  schedule: 00 17 * * *
-  successfulJobsHistoryLimit: 3
-  suspend: false
+  schedule: {{ .Values.compressLogs.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.compressLogs.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.compressLogs.suspend }}
 
 ---
 apiVersion: v1
@@ -79,3 +79,14 @@ metadata:
   name: compress-logs-file-credentials
   namespace: default
 type: Opaque
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: compress-logs-configs
+type: Opaque
+data:
+  {{- range $index, $value := .Values.compressLogs.configurations }}
+    {{ $index }}: {{ $value | default "" | b64enc | default ("" | quote) }}
+  {{- end }}

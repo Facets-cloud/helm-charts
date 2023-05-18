@@ -2,12 +2,12 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   labels:
-    app: clear-logs
-  name: clear-logs
-  namespace: default
+    app: {{ .Release.Name }}-clear-logs
+  name: {{ .Release.Name }}-clear-logs
+  namespace: {{ .Release.Namespace }}
 spec:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 3
+  concurrencyPolicy: {{ .Values.clearLogs.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.clearLogs.failedJobsHistoryLimit }}
   jobTemplate:
     spec:
       template:
@@ -15,10 +15,9 @@ spec:
           annotations:
             cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
           labels:
-            app: clear-logs
+            app: {{ .Release.Name }}-clear-logs
             release: clear-logs
         spec:
-          dnsPolicy: ClusterFirst
           containers:
             - command:
                 - /bin/bash
@@ -30,13 +29,13 @@ spec:
                     secretKeyRef:
                       key: RETENTION_DAYS
                       name: clear-logs-configs
-              image: ubuntu:22.04
-              imagePullPolicy: IfNotPresent
+              image: {{ .Values.clearLogs.image }}
+              imagePullPolicy: {{ .Values.clearLogs.imagePullPolicy }}
               name: clear-logs
               resources:
                 limits:
-                  cpu: 250m
-                  memory: 1Gi
+                  cpu: {{ .Values.clearLogs.resources.limits.cpu }}
+                  memory: {{ .Values.clearLogs.resources.limits.memory }}
               terminationMessagePath: /dev/termination-log
               terminationMessagePolicy: File
               volumeMounts:
@@ -46,12 +45,12 @@ spec:
                   name: dump-vol
                 - mountPath: /var/log/efs
                   name: logs-vol-azure-files
-          restartPolicy: Never
+          restartPolicy: {{ .Values.clearLogs.restartPolicy }}
           tolerations:
-            - effect: NoSchedule
-              key: kubernetes.azure.com/scalesetpriority
-              operator: Equal
-              value: spot
+            - effect: {{ .Values.global.tolerations.effect }}
+              key: {{ .Values.global.tolerations.key }}
+              operator: {{ .Values.global.tolerations.operator }}
+              value: {{ .Values.global.tolerations.value }}
           volumes:
             - name: clear-logs-file-credentials-vol
               secret:
@@ -64,9 +63,9 @@ spec:
             - name: logs-vol-azure-files
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-pvc
-  schedule: 00 18 * * *
-  successfulJobsHistoryLimit: 3
-  suspend: false
+  schedule: {{ .Values.clearLogs.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.clearLogs.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.clearLogs.suspend }}
 
 ---
 apiVersion: v1
@@ -78,3 +77,13 @@ metadata:
   namespace: default
 type: Opaque
 
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: clear-logs-configs
+type: Opaque
+data:
+  {{- range $index, $value := .Values.clearLogs.configurations }}
+    {{ $index }}: {{ $value | default "" | b64enc | default ("" | quote) }}
+  {{- end }}
