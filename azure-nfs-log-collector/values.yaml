@@ -88,22 +88,22 @@ wetty:
         cpu: 125m
         memory: 512Mi
 
-transferLogs:
-  concurrencyPolicy: Forbid
-  failedJobsHistoryLimit: 3
-  image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/transfer-logs:91c0846-12
-  imagePullPolicy: IfNotPresent
-  restartPolicy: Never
-  schedule: "40 17 * * *"
-  successfulJobsHistoryLimit: 3
-  suspend: false
-  resources:
-    limits:
-      cpu: 250m
-      memory: 1Gi
-  configurations:
-    PHASE_SELECTOR: "0"
-    NUM_THREADS: "5"
+#transferLogs:
+#  concurrencyPolicy: Forbid
+#  failedJobsHistoryLimit: 3
+#  image: 313496281593.dkr.ecr.us-east-1.amazonaws.com/transfer-logs:91c0846-12
+#  imagePullPolicy: IfNotPresent
+#  restartPolicy: Never
+#  schedule: "40 17 * * *"
+#  successfulJobsHistoryLimit: 3
+#  suspend: false
+#  resources:
+#    limits:
+#      cpu: 250m
+#      memory: 1Gi
+#  configurations:
+#    PHASE_SELECTOR: "0"
+#    NUM_THREADS: "5"
 
 clearLogs:
   schedule: "00 18 * * *"
