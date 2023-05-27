@@ -5,7 +5,7 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
   labels:
-  {{- include "chart.labels" . | nindent 4 }}
+  {{- include "database-operator.labels" . | nindent 4 }}
 spec:
   group: postgresql.facets.cloud
   names:
