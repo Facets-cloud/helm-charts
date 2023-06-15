@@ -103,7 +103,7 @@ clearLogs:
       cpu: 250m
       memory: 1Gi
   configurations:
-    RETENTION_DAYS: "1"
+    RETENTION_DAYS: "30"
 
 
 compressLogs:
