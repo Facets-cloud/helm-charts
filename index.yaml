@@ -3,9 +3,9 @@ entries:
   azure-nfs-log-collector:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2023-06-15T09:41:09.153201671Z"
+    created: "2023-06-15T10:46:59.203300854Z"
     description: A Helm chart for azure logging substack
-    digest: ecb2540bfe4762417cf9fe4f27805e7f878b8a24624c03580016e4d5493ff5bd
+    digest: 6ceb4cbcd9ad749356efac5b0e8361940ea3459e96ee3d8a028b51beb921002a
     home: https://facets-cloud.github.io
     maintainers:
     - email: rohit@facets.cloud
@@ -17,9 +17,9 @@ entries:
   database-operator:
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2023-06-15T09:41:09.154273376Z"
+    created: "2023-06-15T10:46:59.204059459Z"
     description: A Helm chart for database operator
-    digest: f65919881a8d1e8067bc136a291f274af17ea3d5f26d22a44e41e6dee53a2869
+    digest: 525ac94172948c57f8356dca53f9133807a838ab82904fb766a279c8963975d6
     home: https://facets-cloud.github.io
     maintainers:
     - email: pramodh.ayyappan@facets.cloud
@@ -34,9 +34,9 @@ entries:
   facets-notification-controller:
   - apiVersion: v2
     appVersion: 1.1.0
-    created: "2023-06-15T09:41:09.154716578Z"
+    created: "2023-06-15T10:46:59.204482862Z"
     description: A Helm chart for facets notification controller
-    digest: e7d4bdf74f574ace305f1f8d1c5a9ab17136470280d8e185c22dbe9bb1c4579a
+    digest: c7ed216a131d5509e84686c0b34006e57826575b7fe8ec05935a73f5479db909
     home: https://facets-cloud.github.io
     maintainers:
     - email: vishnu.kv@facets.cloud
@@ -49,9 +49,9 @@ entries:
   kubectl-crons:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2023-06-15T09:41:09.155024079Z"
+    created: "2023-06-15T10:46:59.204845765Z"
     description: A Helm chart for clusters to delete unwanted Pods based on their status
-    digest: 0d650db2d5651ebdf4f9f9a693ee91699f74f6079ea5a0b88ccad98bd66e288e
+    digest: b31a1a983dc097121d41061efdb4f50e5b4bb946f3926d57e7f1380d072b7ae5
     name: kubectl-crons
     type: application
     urls:
@@ -60,9 +60,9 @@ entries:
   scheduled-deployment-scaler:
   - apiVersion: v2
     appVersion: "1"
-    created: "2023-06-15T09:41:09.155259581Z"
+    created: "2023-06-15T10:46:59.205112367Z"
     description: A Helm chart to schedule scaling of a deployment in a Kubernetes cluster
-    digest: 950d29e0c333c56dfe3357523d99464cef216284f9599c433cda3317f44b142b
+    digest: 693154f6c992f888280bed7647f47a0f5a90e1f56438c569aa09912f4e270ff5
     home: https://facets-cloud.github.io
     maintainers:
     - email: rohit@facets.cloud
@@ -76,11 +76,11 @@ entries:
   windows-exporter:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2023-06-15T09:41:09.155650882Z"
+    created: "2023-06-15T10:46:59.20553017Z"
     description: A Helm chart to deploy windows-exporter and register to prometheus via podmonitor in a k8s cluster
-    digest: 0d4288b492dfc63703d0cfdedcca3e8ca01d3677f07f8894d326bc707c3adcfd
+    digest: bb245c94ff44195b18848f5638fd64b37da1bc6031fccd79ac16a5204e056933
     name: windows-exporter
     urls:
     - windows-exporter-0.1.0.tgz
     version: 0.1.0
-generated: "2023-06-15T09:41:09.151638265Z"
+generated: "2023-06-15T10:46:59.202226346Z"
