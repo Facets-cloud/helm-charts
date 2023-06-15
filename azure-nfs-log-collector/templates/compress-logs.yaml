@@ -57,7 +57,7 @@ spec:
               operator: {{ .Values.global.tolerations.operator }}
               value: {{ .Values.global.tolerations.value }}
           volumes:
-            - name: compress-logs-file-credentials-vol
+            - name: {{ .Release.Name  }}-compress-logs-file-credentials-vol
               secret:
                 defaultMode: 420
                 secretName: compress-logs-file-credentials
@@ -76,7 +76,7 @@ spec:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: compress-logs-file-credentials
+  name: {{ .Release.Name  }}-compress-logs-file-credentials
   namespace: default
 type: Opaque
 
@@ -84,7 +84,7 @@ type: Opaque
 apiVersion: v1
 kind: Secret
 metadata:
-  name: compress-logs-configs
+  name: {{ .Release.Name  }}-compress-logs-configs
 type: Opaque
 data:
   {{- range $index, $value := .Values.compressLogs.configurations }}
