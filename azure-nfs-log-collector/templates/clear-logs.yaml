@@ -55,7 +55,7 @@ spec:
             - name: clear-logs-file-credentials-vol
               secret:
                 defaultMode: 420
-                secretName: clear-logs-file-credentials
+                secretName: {{ .Release.Name }}-clear-logs-file-credentials
             - hostPath:
                 path: /var/log/dumps/clear-logs
                 type: DirectoryOrCreate
@@ -73,7 +73,7 @@ kind: Secret
 metadata:
   labels:
     app.kubernetes.io/managed-by: Helm
-  name: clear-logs-file-credentials
+  name: {{ .Release.Name }}-clear-logs-file-credentials
   namespace: default
 type: Opaque
 
@@ -81,7 +81,7 @@ type: Opaque
 apiVersion: v1
 kind: Secret
 metadata:
-  name: clear-logs-configs
+  name: {{ .Release.Name }}-clear-logs-configs
 type: Opaque
 data:
   {{- range $index, $value := .Values.clearLogs.configurations }}
