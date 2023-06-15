@@ -1,0 +1,89 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: {{ .Release.Name }}-clear-logs
+  name: {{ .Release.Name }}-clear-logs
+  namespace: {{ .Release.Namespace }}
+spec:
+  concurrencyPolicy: {{ .Values.clearLogs.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.clearLogs.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+          labels:
+            app: {{ .Release.Name }}-clear-logs
+            release: clear-logs
+        spec:
+          containers:
+            - command:
+                - /bin/bash
+                - -c
+                - find /var/log/efs -type f -mtime +$RETENTION_DAYS -delete -print
+              env:
+                - name: RETENTION_DAYS
+                  valueFrom:
+                    secretKeyRef:
+                      key: RETENTION_DAYS
+                      name: clear-logs-configs
+              image: {{ .Values.clearLogs.image }}
+              imagePullPolicy: {{ .Values.clearLogs.imagePullPolicy }}
+              name: clear-logs
+              resources:
+                limits:
+                  cpu: {{ .Values.clearLogs.resources.limits.cpu }}
+                  memory: {{ .Values.clearLogs.resources.limits.memory }}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /etc/credentialfiles/
+                  name: clear-logs-file-credentials-vol
+                - mountPath: /var/log/dumps
+                  name: dump-vol
+                - mountPath: /var/log/efs
+                  name: logs-vol-azure-files
+          restartPolicy: {{ .Values.clearLogs.restartPolicy }}
+          tolerations:
+            - effect: {{ .Values.global.tolerations.effect }}
+              key: {{ .Values.global.tolerations.key }}
+              operator: {{ .Values.global.tolerations.operator }}
+              value: {{ .Values.global.tolerations.value }}
+          volumes:
+            - name: clear-logs-file-credentials-vol
+              secret:
+                defaultMode: 420
+                secretName: clear-logs-file-credentials
+            - hostPath:
+                path: /var/log/dumps/clear-logs
+                type: DirectoryOrCreate
+              name: dump-vol
+            - name: logs-vol-azure-files
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-pvc
+  schedule: {{ .Values.clearLogs.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.clearLogs.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.clearLogs.suspend }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: clear-logs-file-credentials
+  namespace: default
+type: Opaque
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: clear-logs-configs
+type: Opaque
+data:
+  {{- range $index, $value := .Values.clearLogs.configurations }}
+    {{ $index }}: {{ $value | default "" | b64enc | default ("" | quote) }}
+  {{- end }}

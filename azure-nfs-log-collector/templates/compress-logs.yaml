@@ -1,0 +1,92 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  labels:
+    app: {{ .Release.Name }}-compress-logs
+  name: {{ .Release.Name }}-compress-logs
+  namespace: {{ .Release.Namespace }}
+spec:
+  concurrencyPolicy: {{ .Values.compressLogs.concurrencyPolicy }}
+  failedJobsHistoryLimit: {{ .Values.compressLogs.failedJobsHistoryLimit }}
+  jobTemplate:
+    metadata:
+    spec:
+      template:
+        metadata:
+          annotations:
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+          labels:
+            app: {{ .Release.Name }}-compress-logs
+            release: compress-logs
+        spec:
+          containers:
+            - env:
+                - name: COMPRESS_LOGS_BEFORE_DAYS
+                  valueFrom:
+                    secretKeyRef:
+                      key: COMPRESS_LOGS_BEFORE_DAYS
+                      name: compress-logs-configs
+              command:
+                - /bin/sh
+                - -c
+                - find /var/log/efs -type f -name "*.log" -mtime +$COMPRESS_LOGS_BEFORE_DAYS
+                  -exec sh -c 'pod=$(basename "${1%/*.*}"); day=$(date -r "$1" +%Y%m%d);
+                  zip_file="${1%/*}/${pod}_${day}.zip"; [ -f "$zip_file" ] && cmd="zip
+                  -j -u $zip_file $1" || cmd="zip -j $zip_file $1"; $cmd; rm "$1"' _ {}
+                  \;
+              image: {{ .Values.compressLogs.image }}
+              imagePullPolicy: {{ .Values.compressLogs.imagePullPolicy }}
+              name: compress-logs
+              resources:
+                limits:
+                  cpu: {{ .Values.compressLogs.resources.limits.cpu }}
+                  memory: {{ .Values.compressLogs.resources.limits.memory }}
+              terminationMessagePath: /dev/termination-log
+              terminationMessagePolicy: File
+              volumeMounts:
+                - mountPath: /etc/credentialfiles/
+                  name: compress-logs-file-credentials-vol
+                - mountPath: /var/log/dumps
+                  name: dump-vol
+                - mountPath: /var/log/efs/
+                  name: logs-vol-azure-files
+          restartPolicy: {{ .Values.compressLogs.restartPolicy }}
+          tolerations:
+            - effect: {{ .Values.global.tolerations.effect }}
+              key: {{ .Values.global.tolerations.key }}
+              operator: {{ .Values.global.tolerations.operator }}
+              value: {{ .Values.global.tolerations.value }}
+          volumes:
+            - name: compress-logs-file-credentials-vol
+              secret:
+                defaultMode: 420
+                secretName: compress-logs-file-credentials
+            - hostPath:
+                path: /var/log/dumps/compress-logs
+                type: DirectoryOrCreate
+              name: dump-vol
+            - name: logs-vol-azure-files
+              persistentVolumeClaim:
+                claimName: {{ .Release.Name }}-pvc
+  schedule: {{ .Values.compressLogs.schedule }}
+  successfulJobsHistoryLimit: {{ .Values.compressLogs.successfulJobsHistoryLimit }}
+  suspend: {{ .Values.compressLogs.suspend }}
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: compress-logs-file-credentials
+  namespace: default
+type: Opaque
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: compress-logs-configs
+type: Opaque
+data:
+  {{- range $index, $value := .Values.compressLogs.configurations }}
+    {{ $index }}: {{ $value | default "" | b64enc | default ("" | quote) }}
+  {{- end }}

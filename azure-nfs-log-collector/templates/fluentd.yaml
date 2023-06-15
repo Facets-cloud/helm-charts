@@ -43,8 +43,8 @@ spec:
               name: dump-vol
       priorityClassName: {{ .Values.fluentd.priorityClass.name }}
       restartPolicy: {{ .Values.fluentd.restartPolicy }}
-      serviceAccount: fluentd-app-view
-      serviceAccountName: fluentd-app-view
+      serviceAccount: {{ .Release.Name }}-fluentd-view
+      serviceAccountName: {{ .Release.Name }}-fluentd-view
       tolerations:
         - effect: {{ .Values.global.tolerations.effect }}
           key: {{ .Values.global.tolerations.key }}

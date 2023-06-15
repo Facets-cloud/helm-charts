@@ -88,3 +88,36 @@ wetty:
         cpu: 125m
         memory: 512Mi
 
+
+clearLogs:
+  schedule: "00 18 * * *"
+  concurrencyPolicy: Forbid
+  suspend: false
+  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 3
+  image: ubuntu:22.04
+  imagePullPolicy: IfNotPresent
+  restartPolicy: Never
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+  configurations:
+    RETENTION_DAYS: "30"
+
+
+compressLogs:
+  image: facetscloud/alpine-zip:3.17.1
+  imagePullPolicy: IfNotPresent
+  restartPolicy: Never
+  resources:
+    limits:
+      cpu: 250m
+      memory: 1Gi
+  concurrencyPolicy: Forbid
+  schedule: "00 17 * * *"
+  suspend: false
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  configurations:
+    COMPRESS_LOGS_BEFORE_DAYS: "2"
