@@ -57,10 +57,10 @@ spec:
               operator: {{ .Values.global.tolerations.operator }}
               value: {{ .Values.global.tolerations.value }}
           volumes:
-            - name: {{ .Release.Name  }}-compress-logs-file-credentials-vol
+            - name: compress-logs-file-credentials-vol
               secret:
                 defaultMode: 420
-                secretName: compress-logs-file-credentials
+                secretName: {{ .Release.Name  }}-compress-logs-file-credentials
             - hostPath:
                 path: /var/log/dumps/compress-logs
                 type: DirectoryOrCreate
