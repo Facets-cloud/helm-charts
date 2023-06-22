@@ -25,7 +25,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       key: COMPRESS_LOGS_BEFORE_DAYS
-                      name: compress-logs-configs
+                      name: {{ .Release.Name  }}-compress-logs-configs
               command:
                 - /bin/sh
                 - -c
