@@ -49,6 +49,7 @@ fluentd:
   imagePullSecrets:
     - name: aws-ecr-token-default
     - name: aws-ecr-token-facets-config-auto
+    - name: aws-ecr-token-facets-utils
 
 
 wetty:
