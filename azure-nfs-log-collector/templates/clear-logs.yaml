@@ -28,7 +28,7 @@ spec:
                   valueFrom:
                     secretKeyRef:
                       key: RETENTION_DAYS
-                      name: clear-logs-configs
+                      name: {{ .Release.Name  }}-clear-logs-configs
               image: {{ .Values.clearLogs.image }}
               imagePullPolicy: {{ .Values.clearLogs.imagePullPolicy }}
               name: clear-logs
