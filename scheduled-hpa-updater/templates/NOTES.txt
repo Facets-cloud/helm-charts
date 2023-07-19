@@ -1,0 +1,14 @@
+#######################################################
+#                                                     #
+#  Thank you for installing the Scheduled HPA Updater #
+#  Helm chart.                                        #
+#                                                     #
+#######################################################
+
+The following CronJobs have been created:
+
+| Schedule Name | HPA | Min Replicas | Max Replicas | CPU Percent | Schedule | Namespace |
+|---------------|-----|--------------|--------------|-------------|----------|-----------|
+{{- range $scheduleName, $schedule := .Values.scalingSchedules }}
+| {{ $scheduleName }} | {{ $schedule.hpa }} | {{ $schedule.minReplicas }} | {{ $schedule.maxReplicas }} | {{ $schedule.cpuPercent }} | {{ $schedule.schedule }} | {{ default "default" $schedule.namespace }} |
+{{- end }}

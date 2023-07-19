@@ -1,0 +1,11 @@
+apiVersion: v2
+name: scheduled-hpa-updater
+version: 0.1.0
+appVersion: 1.0
+description: A Helm chart to update autoscaling configuration of a deployment in a Kubernetes cluster
+home: https://facets-cloud.github.io
+sources:
+  - https://github.com/Facets-cloud/helm-charts/tree/master/scheduled-hpa-updater
+maintainers:
+  - name: Rohit Ravendran
+    email: rohit@facets.cloud
