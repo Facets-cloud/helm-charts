@@ -1,14 +1,14 @@
 {{- $releaseName := .Release.Name }}
-{{- $sa := printf "%s-scheduled-hpa-updater-sa" $releaseName }}
-{{- $role := printf "%s-scheduled-hpa-updater-role" $releaseName }}
-{{- $rolebinding := printf "%s-scheduled-hpa-updater-rolebinding" $releaseName }}
+{{- $sa := printf "%s-sa" $releaseName }}
+{{- $role := printf "%s-role" $releaseName }}
+{{- $rolebinding := printf "%s-rb" $releaseName }}
 {{- $schedules := .Values.scalingSchedules }}
 {{- range $scheduleName, $schedule := $schedules }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: "{{ printf "%s-%s-scheduled-hpa-updater-cronjob" $releaseName $scheduleName | lower }}"
+  name: "{{ printf "%s-%s" $releaseName $scheduleName | lower }}"
 spec:
   schedule: "{{ $schedule.schedule }}"
   jobTemplate:
