@@ -3,4 +3,4 @@ kind: Wireguard
 metadata:
   name: "facets-vpn"
 spec:
-  mtu: "1400"
+  mtu: "1380"
