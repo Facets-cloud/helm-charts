@@ -29,11 +29,26 @@ spec:
               command:
                 - /bin/sh
                 - -c
-                - find /var/log/efs -type f -name "*.log" -mtime +$COMPRESS_LOGS_BEFORE_DAYS
-                  -exec sh -c 'pod=$(basename "${1%/*.*}"); day=$(date -r "$1" +%Y%m%d);
-                  zip_file="${1%/*}/${pod}_${day}.zip"; [ -f "$zip_file" ] && cmd="zip
-                  -j -u $zip_file $1" || cmd="zip -j $zip_file $1"; $cmd; rm "$1"' _ {}
-                  \;
+                - |
+                  LOG_PATH="/var/log/efs"
+                  total_uncompressed=$(find "$LOG_PATH" -type f -name '*.log' -mtime +$COMPRESS_LOGS_BEFORE_DAYS | wc -l)
+                  echo "Total .log files to be compressed before $COMPRESS_LOGS_BEFORE_DAYS days: $total_uncompressed"
+                  while [ "$total_uncompressed" -gt 0 ]; do
+                      echo "Compressing $total_uncompressed files..."
+                      uncompressed_files=$(find "$LOG_PATH" -type f -name "*.log" -mtime +$COMPRESS_LOGS_BEFORE_DAYS)
+                      echo "$uncompressed_files" | xargs -I {} sh -c '
+                            pod=$(basename "${1%/*.*}")
+                            day=$(date -r "$1" +%Y%m%d)
+                            zip_file="${1%/*}/${pod}_${day}.zip"
+                            [ -f "$zip_file" ] && cmd="zip -j -u $zip_file $1" || cmd="zip -j $zip_file $1"
+                            $cmd
+                            rm "$1"
+                            ' _ {}
+                      remaining_uncompressed_files=$(find "$LOG_PATH" -type f -name '*.log' -mtime +$COMPRESS_LOGS_BEFORE_DAYS | wc -l)
+                      echo "$remaining_uncompressed_files files remains to be compressed out of $total_uncompressed"
+                      total_uncompressed=$remaining_uncompressed_files
+                  done
+                  echo "All files compressed."
               image: {{ .Values.compressLogs.image }}
               imagePullPolicy: {{ .Values.compressLogs.imagePullPolicy }}
               name: compress-logs
