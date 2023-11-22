@@ -24,6 +24,8 @@ serviceAccount:
 
 podAnnotations: {}
 
+serviceAnnotations: {}
+
 resources:
   requests:
     cpu: 100m
