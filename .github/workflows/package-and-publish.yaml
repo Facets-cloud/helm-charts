@@ -25,6 +25,7 @@ jobs:
           ./linux-amd64/helm package azure-nfs-log-collector
           ./linux-amd64/helm package database-operator
           ./linux-amd64/helm package scheduled-hpa-updater
+          ./linux-amd64/helm package facets-uptime-monitoring
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
