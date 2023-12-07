@@ -1,0 +1,10 @@
+
+---
+apiVersion: uptime.facets.cloud/v1alpha1
+kind: TcpCheck
+metadata:
+  name: tcpcheck-1
+spec:
+  runInterval: 10s
+  timeout: 10m
+  url: github.com:443

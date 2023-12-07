@@ -1,0 +1,10 @@
+
+---
+apiVersion: uptime.facets.cloud/v1alpha1
+kind: MongoCheck
+metadata:
+  name: mongocheck-1
+spec:
+  runInterval: 10s
+  timeout: 10m
+  url: mongodb://root:XLIPBiCwcV@default-mongo-mongodb.default.svc.cluster.local:27017

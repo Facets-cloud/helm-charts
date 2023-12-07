@@ -1,0 +1,207 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "chart.fullname" . }}-manager-role
+  labels:
+  {{- include "chart.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - httpchecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - httpchecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - httpchecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - mongochecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - mongochecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - mongochecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - rabbitmqchecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - rabbitmqchecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - rabbitmqchecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - redischecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - redischecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - redischecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sqlchecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sqlchecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sqlchecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sslchecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sslchecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - sslchecks/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - tcpchecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - tcpchecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - tcpchecks/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "chart.fullname" . }}-manager-rolebinding
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: facets-uptime-monitoring
+    app.kubernetes.io/part-of: facets-uptime-monitoring
+  {{- include "chart.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "chart.fullname" . }}-manager-role'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "chart.fullname" . }}-controller-manager'
+  namespace: '{{ .Release.Namespace }}'
