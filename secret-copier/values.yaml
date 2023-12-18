@@ -236,7 +236,7 @@ Config:
       "schedule": [
         {
           "allowFailure": true,
-          "crontab": "* * * * *"
+          "crontab": "0 * * * *"
         }
       ]
     }
