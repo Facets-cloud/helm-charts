@@ -3,9 +3,9 @@ entries:
   azure-nfs-log-collector:
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2023-12-07T06:15:45.996875098Z"
+    created: "2023-12-18T11:39:52.071494303Z"
     description: A Helm chart for azure logging substack
-    digest: c7a066453cb6fd1dac15d33837f42f9c551852a7690b40cdbe9ceccd55a421fd
+    digest: 74b5f50b3f9ed341fab947770859d8133c77fb336c464abbdfbf50eb4fb89a7c
     home: https://facets-cloud.github.io
     maintainers:
     - email: rohit@facets.cloud
@@ -17,9 +17,9 @@ entries:
   database-operator:
   - apiVersion: v2
     appVersion: 1.0.1
-    created: "2023-12-07T06:15:45.998196402Z"
+    created: "2023-12-18T11:39:52.07267752Z"
     description: A Helm chart for database operator
-    digest: b4e208ea69e35879c550bcef04ee436d5b3a3f2cd032c490cbf782f4688c6e11
+    digest: 14cf5a2840c6c42760b5872a7357f0c4fed72a290759e4177bacec7f3a762a0f
     home: https://facets-cloud.github.io
     maintainers:
     - email: pramodh.ayyappan@facets.cloud
@@ -34,9 +34,9 @@ entries:
   facets-notification-controller:
   - apiVersion: v2
     appVersion: 1.1.0
-    created: "2023-12-07T06:15:45.998681297Z"
+    created: "2023-12-18T11:39:52.073567642Z"
     description: A Helm chart for facets notification controller
-    digest: 8ff802ea573ce85071830cec40fe61d66be955bbbde2aa730f8673b1f838a0bf
+    digest: ca5ef3fd3a303c0163d1acc7be5f0623d0efca29f6e46919a3c3d3cfd253a37e
     home: https://facets-cloud.github.io
     maintainers:
     - email: vishnu.kv@facets.cloud
@@ -49,9 +49,9 @@ entries:
   facets-uptime-monitoring:
   - apiVersion: v2
     appVersion: 0.1.0
-    created: "2023-12-07T06:15:45.999201668Z"
+    created: "2023-12-18T11:39:52.074099911Z"
     description: A Helm chart for creating facets-uptime-monitoring operator
-    digest: 43bbd134be8fe0e90fb1947286d873defd5735eadd85b670be0dac86fc09958d
+    digest: e790316bae80ec9516e0ccda99df60f32bbf536ff7311e2c02b5372554ad0613
     name: facets-uptime-monitoring
     type: application
     urls:
@@ -60,9 +60,9 @@ entries:
   kubectl-crons:
   - apiVersion: v2
     appVersion: 1.16.0
-    created: "2023-12-07T06:15:45.999426227Z"
+    created: "2023-12-18T11:39:52.074328435Z"
     description: A Helm chart for clusters to delete unwanted Pods based on their status
-    digest: 4722a8f83d431295aa3c6e5e5013d850ce4d4dd00e612c3f0575870cc3c5155f
+    digest: d0c9c80ee35d386318a53148ee72bec98a52b00159fba88090a1f5bd8a240a2b
     name: kubectl-crons
     type: application
     urls:
@@ -71,9 +71,9 @@ entries:
   scheduled-deployment-scaler:
   - apiVersion: v2
     appVersion: "1"
-    created: "2023-12-07T06:15:45.999611212Z"
+    created: "2023-12-18T11:39:52.074524088Z"
     description: A Helm chart to schedule scaling of a deployment in a Kubernetes cluster
-    digest: 63c744cef1f8fdacdb94593fc367b6b174752bd4e7a8915eac93b8ee345f5542
+    digest: b3e9299bd4b5c5446046f05a6fee3c9659a91e43472c2773c11e6fb5e56aa377
     home: https://facets-cloud.github.io
     maintainers:
     - email: rohit@facets.cloud
@@ -87,9 +87,9 @@ entries:
   scheduled-hpa-updater:
   - apiVersion: v2
     appVersion: "1"
-    created: "2023-12-07T06:15:45.999797148Z"
+    created: "2023-12-18T11:39:52.074717888Z"
     description: A Helm chart to update autoscaling configuration of a deployment in a Kubernetes cluster
-    digest: bebcdeda74f9aa477ab610362f2b3e68e68bfc1f30c0c129fa4c21e6351fb5bb
+    digest: d87e65f375e6ce0531f0a0d56d438e061bcb53541f617836ec91b7d226c0b0b7
     home: https://facets-cloud.github.io
     maintainers:
     - email: rohit@facets.cloud
@@ -103,11 +103,11 @@ entries:
   windows-exporter:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2023-12-07T06:15:46.000068865Z"
+    created: "2023-12-18T11:39:52.075033665Z"
     description: A Helm chart to deploy windows-exporter and register to prometheus via podmonitor in a k8s cluster
-    digest: fe59ffb3c227b00e34e39bb4af3426aa75f1a0ff5fe03a88d54e6a2f696a195a
+    digest: 247d472c8a454aac732c298bf1f92263ad1eda6e11489c4ee0340554d95c79c0
     name: windows-exporter
     urls:
     - windows-exporter-0.1.0.tgz
     version: 0.1.0
-generated: "2023-12-07T06:15:45.996092178Z"
+generated: "2023-12-18T11:39:52.070691081Z"
