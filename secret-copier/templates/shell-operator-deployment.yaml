@@ -1,0 +1,31 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: shell-operator
+        image: "ghcr.io/flant/shell-operator:latest"
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: {{ .Release.Name }}
+          mountPath: /hooks/
+      serviceAccountName: {{ .Release.Name }}
+      volumes:
+      - name: {{ .Release.Name }}
+        configMap:
+          name: {{ .Release.Name }}
+          defaultMode: 0777

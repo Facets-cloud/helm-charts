@@ -1,0 +1,4 @@
+apiVersion: v1
+name: secret-copier
+version: 1.0.0
+description: Used to copy secrets from default namespace to all other namespaces.
