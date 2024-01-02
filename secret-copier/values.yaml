@@ -32,10 +32,10 @@ Config:
             "Added",
             "Modified"
           ],
-          "nameSelector": {
-            "matchNames": [
-              "registry-secret"
-            ]
+          "labelSelector": {
+            "matchLabels": {
+              "secret-copier": "yes"
+            }
           },
           "namespace": {
             "nameSelector": {
@@ -236,7 +236,7 @@ Config:
       "schedule": [
         {
           "allowFailure": true,
-          "crontab": "0 * * * *"
+          "crontab": "0 3 * * *"
         }
       ]
     }
