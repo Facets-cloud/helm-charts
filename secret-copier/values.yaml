@@ -5,6 +5,7 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
+        hook::trigger
       else
         hook::trigger
       fi
@@ -81,6 +82,7 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
+        hook::trigger
       else
         hook::trigger
       fi
@@ -141,6 +143,7 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
+        hook::trigger
       else
         hook::trigger
       fi
@@ -214,6 +217,7 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
+        hook::trigger
       else
         hook::trigger
       fi
