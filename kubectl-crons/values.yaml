@@ -9,8 +9,11 @@ cronConfig:
 - cronName: "cleanup-completed-pods"
   schedule: "0 0 * * *"
   command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod -n default"
+image: "bitnami/kubectl:1.16"
 # tolerations: 
 #   - key: "example-key"
 #     operator: "Equal"
 #     value: "example-value"
-#     effect: "NoSchedule"  
+#     effect: "NoSchedule"
+# nodeSelector:
+#   kubernetes.io/os: linux
