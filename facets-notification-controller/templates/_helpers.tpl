@@ -34,6 +34,9 @@ Create chart name and version as used by the chart label.
 Common labels
 */}}
 {{- define "facets-notification-controller.labels" -}}
+{{- with .Values.labels }}
+{{- toYaml . }}
+{{- end }}
 helm.sh/chart: {{ include "facets-notification-controller.chart" . }}
 {{ include "facets-notification-controller.selectorLabels" . }}
 {{- if .Chart.AppVersion }}

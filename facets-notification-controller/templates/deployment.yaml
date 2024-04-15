@@ -9,6 +9,7 @@ spec:
   selector:
     matchLabels:
       {{- include "facets-notification-controller.selectorLabels" . | nindent 6 }}
+      {{- include "facets-notification-controller.labels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -17,6 +18,7 @@ spec:
       {{- end }}
       labels:
         {{- include "facets-notification-controller.selectorLabels" . | nindent 8 }}
+        {{- include "facets-notification-controller.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
