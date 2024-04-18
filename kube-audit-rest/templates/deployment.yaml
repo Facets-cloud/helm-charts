@@ -10,13 +10,6 @@ spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
-  restartPolicy: {{ .Values.deployment.restartPolicy }}
-  terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
   selector:
     matchLabels:
       {{- include "kube-audit-rest.selectorLabels" . | nindent 6 }}
@@ -44,6 +37,8 @@ spec:
       serviceAccountName: {{ include "kube-audit-rest.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      restartPolicy: {{ .Values.deployment.restartPolicy }}
+      terminationGracePeriodSeconds: {{ .Values.deployment.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
