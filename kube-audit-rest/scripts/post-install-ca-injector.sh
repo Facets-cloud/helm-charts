@@ -2,6 +2,10 @@
 
 set -xeuo pipefail
 
+# Injects the CA certificate from the secret to the validating webhook
+# configuration
+# ===================================
+
 cd /tmp
 
 CA_BUNDLE=$(kubectl get secrets $SECRET_NAME -o jsonpath='{.data.ca\.crt}')

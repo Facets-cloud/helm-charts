@@ -33,6 +33,10 @@ rules:
   resourceNames: ["{{ include "kube-audit-rest.fullname" . }}"]
   resources: ["secrets"]
   verbs: ["get", "update", "patch"]
+- apiGroups: ["apps"]
+  resourceNames: ["{{ include "kube-audit-rest.fullname" . }}"]
+  resources: ["deployments"]
+  verbs: ["get", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

@@ -48,7 +48,7 @@ tls:
 # configuration & do a rollout restart
 hooks:
   preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-entrypoint.sh
-  postInstallArgs: echo "post hook" && bash ./scripts/post-install-ca-injector.sh
+  postInstallArgs: echo "post hook" && bash ./scripts/post-install-entrypoint.sh
 
 podAnnotations: {}
 podLabels: {}
