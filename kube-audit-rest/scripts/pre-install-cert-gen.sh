@@ -30,6 +30,17 @@ openssl x509 -req -in server.csr -CA ca.crt -CAkey ca.key \
 openssl req -noout -text -in ./server.csr
 openssl x509 -noout -text -in ./server.crt
 
-ls -al
-kubectl get secrets $SECRET_NAME -o yaml
-# sleep infinity
+CERT=$(base64 server.crt | tr -d '\n')
+KEY=$(base64 server.key | tr -d '\n')
+CA=$(base64 ca.crt | tr -d '\n')
+
+jq -n --arg cert "$CERT" --arg key "$KEY" --arg ca "$CA" \
+    '{
+      "data": {
+        "tls.crt": $cert,
+        "tls.key": $key,
+        "ca.crt": $ca
+      }
+    }' >patch.json
+
+kubectl patch secret $SECRET_NAME --patch-file patch.json

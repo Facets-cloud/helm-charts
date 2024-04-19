@@ -47,7 +47,7 @@ tls:
 # main purpose of post install hook is to do a CA injection in webhook
 # configuration & do a rollout restart
 hooks:
-  preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-cert-gen.sh
+  preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-entrypoint.sh
 
 podAnnotations: {}
 podLabels: {}
