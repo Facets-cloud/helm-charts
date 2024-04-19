@@ -90,6 +90,7 @@ Post Install helm annotations
 @param .args custom args to run
 */}}
 {{- define "kube-audit-rest.hooks.job.template" -}}
+ttlSecondsAfterFinished: 100
 backoffLimit: 1
 template:
   spec:
@@ -127,6 +128,10 @@ template:
           value: {{ include "kube-audit-rest.fullname" .root }}
         - name: SECRET_NAME
           value: {{ include "kube-audit-rest.fullname" .root }}
+        - name: RELEASE_NAME
+          value: {{ include "kube-audit-rest.fullname" .root }}
+        - name: RELEASE_NAMESPACE
+          value: {{ .root.Release.Namespace }}
       securityContext:
         {{- toYaml .root.Values.securityContext | nindent 8 }}
       resources:
