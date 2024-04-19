@@ -61,3 +61,80 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Hook Resource Install name
+*/}}
+{{- define "kube-audit-rest.hooks.fullname" -}}
+{{-  include "kube-audit-rest.fullname" . | printf "%s-hook" | trunc 63 | trimSuffix "-" }}
+{{- end -}}
+
+{{/*
+Post Install helm annotations
+
+@param .weight helm post install hook weight
+@param .hooks what helm hooks to implement. default: post-install,post-upgrade
+@param .resourcePolicy delete policy for the hook
+*/}}
+{{- define "kube-audit-rest.hooks.annotations" -}}
+helm.sh/hook: {{ .hooks | default "post-install,post-upgrade" | quote }}
+helm.sh/hook-delete-policy: {{ .resourcePolicy | default "before-hook-creation,hook-succeeded" | quote }}
+helm.sh/hook-weight: {{ .weight | default 0 | quote }}
+{{- end -}}
+
+
+{{/*
+Post Install helm annotations
+
+@param .root a reference to `.`, the root context
+@param .args custom args to run
+*/}}
+{{- define "kube-audit-rest.hooks.job.template" -}}
+backoffLimit: 1
+template:
+  spec:
+    {{- with .root.imagePullSecrets }}
+    imagePullSecrets:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    securityContext:
+      runAsUser: 1001
+      runAsGroup: 1001
+      fsGroup: 1001
+    serviceAccountName: {{ include "kube-audit-rest.serviceAccountName" .root }}
+    volumes:
+      - name: scripts
+        configMap:
+          name: {{ include "kube-audit-rest.hooks.fullname" .root }}
+      - name: tmp
+        emptyDir:
+          sizeLimit: 100Mi
+    containers:
+    - name: {{ include "kube-audit-rest.hooks.fullname" .root }}
+      image: bitnami/kubectl
+      {{- with .args }}
+      command: ["/bin/sh", "-c"]
+      args:
+        - {{ . | toYaml }}
+      {{- end }}
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts/
+        - name: tmp
+          mountPath: "/tmp"
+      env:
+        - name: DEPLOYMENT_NAME
+          value: {{ include "kube-audit-rest.fullname" .root }}
+        - name: SECRET_NAME
+          value: {{ include "kube-audit-rest.fullname" .root }}
+      securityContext:
+        {{- toYaml .root.Values.securityContext | nindent 8 }}
+      resources:
+        limits:
+          cpu: "1"
+          memory: 512Mi
+        requests:
+          cpu: 2m
+          memory: 10Mi
+    restartPolicy: Never
+{{- end -}}

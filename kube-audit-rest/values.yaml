@@ -2,6 +2,8 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+fullnameOverride: ""
+nameOverride: ""
 image:
   repository: ghcr.io/richardoc/kube-audit-rest
   pullPolicy: IfNotPresent
@@ -37,6 +39,15 @@ tls:
     tls.key: "REPLACE"
     tls.crt: "REPLACE"
     ca.crt: "REPLACE"
+
+# Configure the commands/scripts run in pre & post install hooks
+#   - In default mode, a pre-install hook will generate a tls cert on the fly.
+#   - In manual mode, no pre-install hook will be run.
+#
+# main purpose of post install hook is to do a CA injection in webhook
+# configuration & do a rollout restart
+hooks:
+  preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-cert-gen.sh
 
 podAnnotations: {}
 podLabels: {}

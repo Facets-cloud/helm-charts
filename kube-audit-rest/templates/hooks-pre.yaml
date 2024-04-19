@@ -1,0 +1,12 @@
+{{- if eq .Values.tls.mode "default" -}}
+# Pre install hook to generate a self signed certs
+# https://kubernetes.io/docs/tasks/administer-cluster/certificates/#distributing-self-signed-ca-certificate
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{include "kube-audit-rest.hooks.fullname" . -}} -pre
+  annotations:
+    {{- include "kube-audit-rest.hooks.annotations" (dict "weight" 10 "hooks" "pre-install,pre-upgrade") | nindent 4 }}
+spec:
+  {{- include "kube-audit-rest.hooks.job.template" (dict "root" . "args" .Values.hooks.preInstallArgs ) | nindent 2 }}
+{{- end -}}
