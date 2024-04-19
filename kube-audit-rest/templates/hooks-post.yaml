@@ -1,0 +1,11 @@
+{{- if eq .Values.tls.mode "default" -}}
+# CA Injector
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{include "kube-audit-rest.hooks.fullname" . -}} -post
+  annotations:
+    {{- include "kube-audit-rest.hooks.annotations" (dict "weight" 10 "hooks" "post-install,post-upgrade") | nindent 4 }}
+spec:
+  {{- include "kube-audit-rest.hooks.job.template" (dict "root" . "args" .Values.hooks.postInstallArgs ) | nindent 2 }}
+{{- end -}}

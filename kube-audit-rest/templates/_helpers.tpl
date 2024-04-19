@@ -78,7 +78,7 @@ Post Install helm annotations
 */}}
 {{- define "kube-audit-rest.hooks.annotations" -}}
 helm.sh/hook: {{ .hooks | default "post-install,post-upgrade" | quote }}
-helm.sh/hook-delete-policy: {{ .resourcePolicy | default "before-hook-creation,hook-succeeded" | quote }}
+helm.sh/hook-delete-policy: {{ .resourcePolicy | default "delete,before-hook-creation,hook-succeeded" | quote }}
 helm.sh/hook-weight: {{ .weight | default 0 | quote }}
 {{- end -}}
 
@@ -132,6 +132,8 @@ template:
           value: {{ include "kube-audit-rest.fullname" .root }}
         - name: RELEASE_NAMESPACE
           value: {{ .root.Release.Namespace }}
+        - name: WEBHOOK_NAME
+          value: {{ include "kube-audit-rest.fullname" .root }}
       securityContext:
         {{- toYaml .root.Values.securityContext | nindent 8 }}
       resources:
