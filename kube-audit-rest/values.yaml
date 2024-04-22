@@ -50,6 +50,42 @@ hooks:
   preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-entrypoint.sh
   postInstallArgs: echo "post hook" && bash ./scripts/post-install-entrypoint.sh
 
+# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#webhook-configuration
+webhook:
+  # A whitelist of default rules
+  defaultRules:
+
+  # Additional rules in k8s spec format
+  additionalRules:
+    # - operations: ["*"]
+    #   apiGroups: ["*"]
+    #   apiVersions: ["*"]
+    #   resources: ["*/*"]
+    #   scope: "*"
+
+  # Limit requests sent to this webhook by apps matching these labels
+  objectSelector:
+    # foo: bar
+
+  namespaceSelector:
+    # - key: foo
+    #   operator: NotIn
+    #   values: ["bar", "spam"]
+
+  # possible values: `Exact` or `Equivalent`
+  # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchpolicy
+  matchPolicy: Equivalent
+
+  # Kubernetes 1.30+ only
+  # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchconditions
+  matchConditions:
+    # - name: "exclude-leases" # Each match condition must have a unique name
+    #   expression: '!(request.resource.group == "coordination.k8s.io" && request.resource.resource == "leases")' # Match non-lease resources.
+    # - name: "exclude-kubelet-requests"
+    #   expression: '!("system:nodes" in request.userInfo.groups)' # Match requests made by non-node users.
+    # - name: "rbac" # Skip RBAC requests, which are handled by the second webhook.
+    #   expression: 'request.resource.group != "rbac.authorization.k8s.io"'
+
 podAnnotations: {}
 podLabels: {}
 

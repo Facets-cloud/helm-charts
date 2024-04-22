@@ -19,10 +19,26 @@ webhooks:
       {{- else }}
       caBundle: "LS0tLS1CRUdJTiBQTEFDRUhPTERFUi0tLS0tCi0tLS0tRU5EIFBMQUNFSE9MREVSLS0tLS0=" # To be replaced by post install job
       {{- end }}
-    rules: # To be reduced as needed
-      - operations: ["*"]
-        apiGroups: ["*"]
-        apiVersions: ["*"]
-        resources: ["*/*"]
-        scope: "*" 
+    matchPolicy: {{ .Values.webhook.matchPolicy }}
+    
+    {{- with .Values.webhook.objectSelector }}
+    objectSelector:
+      matchLabels:
+        {{- . | toYaml | nindent 8 }}
+    {{- end }}
+    
+    {{- with .Values.webhook.namespaceSelector }}
+    namespaceSelector:
+      matchExpressions:
+        {{- . | toYaml | nindent 8 }}
+    {{- end }}
+    
+    {{- with .Values.webhook.matchConditions }}
+    matchConditions:
+      {{- . | toYaml | nindent 6 }}
+    {{- end }}
+    rules:
+      {{- with .Values.webhook.additionalRules }}
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
     admissionReviewVersions: ["v1"]
