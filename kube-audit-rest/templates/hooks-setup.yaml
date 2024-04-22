@@ -21,7 +21,7 @@ metadata:
 {{- print "" }}
 ---
 # Give read write access to the tls secret
-{{ $roleName :=  include "kube-audit-rest.fullname" . | printf "%s-secret-rw" | trunc 63 -}}
+{{ $roleName :=  include "kube-audit-rest.fullname" . | printf "%s-secret-depl-rw" | trunc 63 -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
