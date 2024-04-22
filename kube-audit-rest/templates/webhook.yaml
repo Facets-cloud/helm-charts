@@ -37,8 +37,11 @@ webhooks:
     matchConditions:
       {{- . | toYaml | nindent 6 }}
     {{- end }}
+
     rules:
-      {{- with .Values.webhook.additionalRules }}
-        {{- . | toYaml | nindent 8 }}
+      # TODO: deep merge additionalRules and our default whitelist?
+      {{- with .Values.webhook.additionalRules -}}
+        {{- . | toYaml | nindent 6 }}
       {{- end }}
+      {{- include "kube-audit-rest.webhook.rules" . | nindent 6 }}
     admissionReviewVersions: ["v1"]

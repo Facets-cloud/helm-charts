@@ -145,3 +145,20 @@ template:
           memory: 10Mi
     restartPolicy: Never
 {{- end -}}
+
+{{/*
+Helper to convert our webhook whitelist into webhook.rules
+*/}}
+{{- define "kube-audit-rest.webhook.rules" -}}
+{{- with .Values.webhook.defaultRules -}}
+{{- $operations := .operations -}}
+{{- range $i, $val := .whitelist }}
+- operations: {{ $operations | toYaml | nindent 4 }}
+  apiGroups: {{ $val.apiGroup | list | toYaml | nindent 4 }}
+  apiVersions: {{ $val.versions | default "*" | list | toYaml | nindent 4 }}
+  resources: {{ $val.resources | default "*/*" | list | toYaml | nindent 4 }}
+  scope: "*"
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
