@@ -1,0 +1,88 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: mongodb-auth-operator
+    app.kubernetes.io/part-of: mongodb-auth-operator
+  {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
+  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-role
+rules:
+- apiGroups:
+    - ""
+  resources:
+    - secrets
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - users
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - users/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - users/status
+  verbs:
+    - get
+    - patch
+    - update
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - roles
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - roles/finalizers
+  verbs:
+    - update
+- apiGroups:
+    - mongo.facets.cloud
+  resources:
+    - roles/status
+  verbs:
+    - get
+    - patch
+    - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: mongodb-auth-operator
+    app.kubernetes.io/part-of: mongodb-auth-operator
+  {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
+  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-rolebinding
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-role
+  apiGroup: rbac.authorization.k8s.io
