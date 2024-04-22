@@ -13,17 +13,18 @@ image:
 imagePullSecrets: []
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # -- Specifies whether a service account should be created
   create: true
-  # Automatically mount a ServiceAccount's API credentials?
+  # -- Automatically mount a ServiceAccount's API credentials?
   automount: true
-  # Annotations to add to the service account
+  # -- Annotations to add to the service account
   annotations: {}
-  # The name of the service account to use.
+  # -- The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
 deployment:
+  # -- extra arguments to pass to kube-audit-rest
   extraArgs: []
   progressDeadlineSeconds: 600
   revisionHistoryLimit: 10
@@ -32,9 +33,9 @@ deployment:
 
 # TLS configuration for the webhook server
 tls:
-  # available modes: default, manual (TODO: cert-mgr)
+  # -- available modes: default, manual (TODO: cert-mgr mode)
   mode: default
-  # if manual enter the base64 encoded tls cert here
+  # -- if manual enter the base64 encoded tls cert here
   manual:
     tls.key: "REPLACE"
     tls.crt: "REPLACE"
@@ -50,9 +51,10 @@ hooks:
   preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-entrypoint.sh
   postInstallArgs: echo "post hook" && bash ./scripts/post-install-entrypoint.sh
 
+# configuration for validating webhook
 # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#webhook-configuration
 webhook:
-  # A whitelist of default rules. Set this to empty if you dont want to use the
+  # -- (not empty object) A whitelist of default rules. Set this to empty if you dont want to use the
   # default whitelist.
   #
   # Api groups to blacklist:
@@ -67,8 +69,11 @@ webhook:
   #     versions: []
   #     resources: ["*/*"]
   defaultRules:
+    # -- operations to log. default is all
     # operations: ["CREATE", "UPDATE", "DELETE", "CONNECT"]
+    # @ignored
     operations: ["*"]
+    # @ignored
     whitelist:
       - apiGroup: rbac.authorization.k8s.io
         # versions: ["*"]
@@ -99,28 +104,31 @@ webhook:
       - apiGroup: "node.k8s.io"
       - apiGroup: "flowcontrol.apiserver.k8s.io"
 
-  # Additional rules in k8s spec format
+  # -- Additional rules in k8s rules spec format
   additionalRules:
+    []
     # - operations: ["*"]
     #   apiGroups: ["*"]
     #   apiVersions: ["*"]
     #   resources: ["*/*"]
     #   scope: "*"
 
-  # Limit requests sent to this webhook by apps matching these labels
+  # -- Limit requests sent to this webhook by apps matching these labels
   objectSelector:
     # foo: bar
 
+  # -- https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-namespaceselector
   namespaceSelector:
+    []
     # - key: foo
     #   operator: NotIn
     #   values: ["bar", "spam"]
 
-  # possible values: `Exact` or `Equivalent`
+  # -- possible values: `Exact` or `Equivalent`
   # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchpolicy
   matchPolicy: Equivalent
 
-  # Kubernetes 1.30+ only
+  # -- Kubernetes 1.30+ only
   # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchconditions
   matchConditions:
     # - name: "exclude-leases" # Each match condition must have a unique name
@@ -133,11 +141,13 @@ webhook:
 podAnnotations: {}
 podLabels: {}
 
+# -- same as kube audit rest
 podSecurityContext:
   runAsUser: 255999
   runAsGroup: 255999
   fsGroup: 255999
 
+# -- same as kube audit rest
 securityContext:
   capabilities:
     drop:
@@ -153,6 +163,7 @@ resources:
     cpu: 2m
     memory: 10Mi
 
+# -- if auto scaling is disabled
 replicaCount: 1
 autoscaling:
   enabled: false
@@ -161,14 +172,14 @@ autoscaling:
   targetCPUUtilizationPercentage: 75
   # targetMemoryUtilizationPercentage: 80
 
-# Additional volumes on the output Deployment definition.
+# -- Additional volumes on the output Deployment definition.
 volumes: []
 # - name: foo
 #   secret:
 #     secretName: mysecret
 #     optional: false
 
-# Additional volumeMounts on the output Deployment definition.
+# -- Additional volumeMounts on the output Deployment definition.
 volumeMounts: []
 # - name: foo
 #   mountPath: "/etc/foo"
