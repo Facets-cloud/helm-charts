@@ -59,7 +59,8 @@ webhook:
   #   - authorization.k8s.io
   #   - authentication.k8s.io
   #   - coordination.k8s.io
-  #   - "" (core) -> Endpoints
+  #   - events.k8s.io
+  #   - "" (core) -> Endpoints, Events
   #
   # Format for whitelist:
   #   - apiGroup: ""
@@ -77,7 +78,6 @@ webhook:
           - "bindings/*"
           - "componentstatuses/*"
           - "configmaps/*"
-          - "events/*"
           - "limitranges/*"
           - "namespaces/*"
           - "nodes/*"
@@ -95,7 +95,6 @@ webhook:
       - apiGroup: "policy"
       - apiGroup: "apiextensions.k8s.io"
       - apiGroup: "admissionregistration.k8s.io"
-      - apiGroup: "events.k8s.io"
       - apiGroup: "apiregistration.k8s.io"
       - apiGroup: "node.k8s.io"
       - apiGroup: "flowcontrol.apiserver.k8s.io"
