@@ -1,0 +1,192 @@
+# Default values for kube-audit-rest.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+fullnameOverride: ""
+nameOverride: ""
+image:
+  repository: ghcr.io/richardoc/kube-audit-rest
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "7c6b957ec970acc705d95a1fac72ea7a15bef9c4-alpine"
+
+imagePullSecrets: []
+
+serviceAccount:
+  # -- Specifies whether a service account should be created
+  create: true
+  # -- Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # -- Annotations to add to the service account
+  annotations: {}
+  # -- The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+deployment:
+  # -- extra arguments to pass to kube-audit-rest
+  extraArgs: []
+  progressDeadlineSeconds: 600
+  revisionHistoryLimit: 10
+  restartPolicy: Always
+  terminationGracePeriodSeconds: 30
+
+# TLS configuration for the webhook server
+tls:
+  # -- available modes: default, manual (TODO: cert-mgr mode)
+  mode: default
+  # -- if manual enter the base64 encoded tls cert here
+  manual:
+    tls.key: "REPLACE"
+    tls.crt: "REPLACE"
+    ca.crt: "REPLACE"
+
+# Configure the commands/scripts run in pre & post install hooks
+#   - In default mode, a pre-install hook will generate a tls cert on the fly.
+#   - In manual mode, no pre-install hook will be run.
+#
+# main purpose of post install hook is to do a CA injection in webhook
+# configuration & do a rollout restart
+hooks:
+  preInstallArgs: echo "pre hook" && bash ./scripts/pre-install-entrypoint.sh
+  postInstallArgs: echo "post hook" && bash ./scripts/post-install-entrypoint.sh
+
+# configuration for validating webhook
+# https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#webhook-configuration
+webhook:
+  # -- (not empty object) A whitelist of default rules. Set this to empty if you dont want to use the
+  # default whitelist.
+  #
+  # Api groups to blacklist:
+  #   - authorization.k8s.io
+  #   - authentication.k8s.io
+  #   - coordination.k8s.io
+  #   - events.k8s.io
+  #   - "" (core) -> Endpoints, Events
+  #
+  # Format for whitelist:
+  #   - apiGroup: ""
+  #     versions: []
+  #     resources: ["*/*"]
+  defaultRules:
+    # -- operations to log. default is all
+    # operations: ["CREATE", "UPDATE", "DELETE", "CONNECT"]
+    # @ignored
+    operations: ["*"]
+    # @ignored
+    whitelist:
+      - apiGroup: rbac.authorization.k8s.io
+        # versions: ["*"]
+        # resources: ["*/*"]
+      - apiGroup: ""
+        resources:
+          - "bindings/*"
+          - "componentstatuses/*"
+          - "configmaps/*"
+          - "limitranges/*"
+          - "namespaces/*"
+          - "nodes/*"
+          - "persistentvolumeclaims/*"
+          - "persistentvolumes/*"
+          - "pods/*"
+          - "podtemplates/*"
+          - "replicationcontrollers/*"
+          - "resourcequotas/*"
+          - "secrets/*"
+          - "serviceaccounts/*"
+          - "services/*"
+      - apiGroup: "apps"
+      - apiGroup: "networking.k8s.io"
+      - apiGroup: "policy"
+      - apiGroup: "apiextensions.k8s.io"
+      - apiGroup: "admissionregistration.k8s.io"
+      - apiGroup: "apiregistration.k8s.io"
+      - apiGroup: "node.k8s.io"
+      - apiGroup: "flowcontrol.apiserver.k8s.io"
+
+  # -- Additional rules in k8s rules spec format
+  additionalRules:
+    []
+    # - operations: ["*"]
+    #   apiGroups: ["*"]
+    #   apiVersions: ["*"]
+    #   resources: ["*/*"]
+    #   scope: "*"
+
+  # -- Limit requests sent to this webhook by apps matching these labels
+  objectSelector:
+    # foo: bar
+
+  # -- https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-namespaceselector
+  namespaceSelector:
+    []
+    # - key: foo
+    #   operator: NotIn
+    #   values: ["bar", "spam"]
+
+  # -- possible values: `Exact` or `Equivalent`
+  # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchpolicy
+  matchPolicy: Equivalent
+
+  # -- Kubernetes 1.30+ only
+  # https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#matching-requests-matchconditions
+  matchConditions:
+    # - name: "exclude-leases" # Each match condition must have a unique name
+    #   expression: '!(request.resource.group == "coordination.k8s.io" && request.resource.resource == "leases")' # Match non-lease resources.
+    # - name: "exclude-kubelet-requests"
+    #   expression: '!("system:nodes" in request.userInfo.groups)' # Match requests made by non-node users.
+    # - name: "rbac" # Skip RBAC requests, which are handled by the second webhook.
+    #   expression: 'request.resource.group != "rbac.authorization.k8s.io"'
+
+podAnnotations: {}
+podLabels: {}
+
+# -- same as kube audit rest
+podSecurityContext:
+  runAsUser: 255999
+  runAsGroup: 255999
+  fsGroup: 255999
+
+# -- same as kube audit rest
+securityContext:
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+
+resources:
+  limits:
+    cpu: "1"
+    memory: 32Mi
+  requests:
+    cpu: 2m
+    memory: 10Mi
+
+# -- if auto scaling is disabled
+replicaCount: 1
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+  # targetMemoryUtilizationPercentage: 80
+
+# -- Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# -- Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
