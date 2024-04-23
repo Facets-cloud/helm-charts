@@ -27,6 +27,7 @@ jobs:
           ./linux-amd64/helm package scheduled-hpa-updater
           ./linux-amd64/helm package facets-uptime-monitoring
           ./linux-amd64/helm package secret-copier
+          ./linux-amd64/helm package kube-audit-rest
           mkdir -p charts
           mv *.tgz charts/
           ./linux-amd64/helm repo index charts/
