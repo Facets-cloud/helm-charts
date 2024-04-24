@@ -85,7 +85,8 @@ spec:
                 type: array
               rolesToRole:
                 items:
-                  type: roles from which this role inherits privileges.
+                  description: roles from which this role inherits privileges.
+                  type: string
                 type: array
             type: object
           status:
