@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/created-by: mongodb-auth-operator
     app.kubernetes.io/part-of: mongodb-auth-operator
   {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
-  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-role
+  name: {{ .Release.Name }}-controller-manager-role
 rules:
 - apiGroups:
     - ""
@@ -77,12 +77,12 @@ metadata:
     app.kubernetes.io/created-by: mongodb-auth-operator
     app.kubernetes.io/part-of: mongodb-auth-operator
   {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
-  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-rolebinding
+  name: {{ .Release.Name }}-controller-manager-rolebinding
 subjects:
   - kind: ServiceAccount
-    name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager
+    name: {{ .Release.Name }}-controller-manager
     namespace: {{ .Release.Namespace }}
 roleRef:
   kind: ClusterRole
-  name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager-role
+  name: {{ .Release.Name }}-controller-manager-role
   apiGroup: rbac.authorization.k8s.io

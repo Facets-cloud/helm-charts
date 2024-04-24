@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/created-by: mongodb-auth-operator
     app.kubernetes.io/part-of: mongodb-auth-operator
   {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
-  name: {{ include "mongodb-auth-operator.fullname" . }}-leader-election-role
+  name: {{ .Release.Name }}-leader-election-role
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
@@ -38,13 +38,13 @@ metadata:
     app.kubernetes.io/created-by: mongodb-auth-operator
     app.kubernetes.io/part-of: mongodb-auth-operator
   {{- include "mongodb-auth-operator.labels" . | nindent 4 }}
-  name: {{ include "mongodb-auth-operator.fullname" . }}-leader-election-rolebinding
+  name: {{ .Release.Name }}-leader-election-rolebinding
   namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ include "mongodb-auth-operator.fullname" . }}-leader-election-role
+  name: {{ .Release.Name }}-leader-election-role
 subjects:
   - kind: ServiceAccount
-    name: {{ include "mongodb-auth-operator.fullname" . }}-controller-manager
+    name: {{ .Release.Name }}-controller-manager
     namespace: {{ .Release.Namespace }}
