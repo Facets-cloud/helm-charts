@@ -20,6 +20,10 @@ spec:
               image: bitnami/kubectl:1.21
               command: ["/bin/sh", "-c", "kubectl scale --replicas={{ $schedule.desiredReplicas }} deployment {{ $schedule.deployment }} -n {{ default $schedule.namespace "default" }}"]
           restartPolicy: OnFailure
+          {{- with $.Values.tolerations }}
+          tolerations:
+            {{ . | toYaml | nindent 10 }}
+          {{- end }}
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
