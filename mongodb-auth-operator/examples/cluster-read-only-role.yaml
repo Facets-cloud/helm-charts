@@ -1,0 +1,12 @@
+apiVersion: mongo.facets.cloud/v1alpha1
+kind: Role
+metadata:
+  name: cluster-read-role
+spec:
+  connectionString: mongodb://root:xyz@mongodb-test.default.svc.cluster.local:27017
+  database: testdb
+  privileges:
+  - resource:
+      cluster: true
+    actions:
+    - find

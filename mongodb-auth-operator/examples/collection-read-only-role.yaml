@@ -1,0 +1,13 @@
+apiVersion: mongo.facets.cloud/v1alpha1
+kind: Role
+metadata:
+  name: test-role-1
+spec:
+  connectionString: mongodb://root:xyz@mongodb-test.default.svc.cluster.local:27017
+  database: testdb
+  privileges:
+  - resource:
+      db: testdb
+      collection: testing
+    actions:
+    - find

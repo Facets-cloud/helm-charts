@@ -27,8 +27,8 @@ controllerManager:
       - --metrics-bind-address=127.0.0.1:8080
       - --leader-elect
     image:
-      repository: facets/mongodb-operator
-      tag: latest
+      repository: facetscloud/mongodb-auth-operator
+      tag: 1
     resources:
       limits:
         cpu: 500m
