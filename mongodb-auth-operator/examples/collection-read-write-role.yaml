@@ -3,7 +3,7 @@ kind: Role
 metadata:
   name: test-role-2
 spec:
-  connectionString: mongodb://root:Nqjkbb12J8h2HffO@mongodb-alpha-mongo-0.mongodb-alpha-mongo-headless.default.svc.cluster.local:27017
+  connectionString: mongodb://root:xyz@mongodb-test.default.svc.cluster.local:27017
   database: testdb
   privileges:
   - resource:
