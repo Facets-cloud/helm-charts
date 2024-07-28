@@ -187,6 +187,32 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - uptimechecks
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - uptimechecks/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - uptime.facets.cloud
+  resources:
+  - uptimechecks/status
+  verbs:
+  - get
+  - patch
+  - update
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
