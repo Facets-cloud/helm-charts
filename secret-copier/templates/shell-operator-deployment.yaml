@@ -23,7 +23,19 @@ spec:
         volumeMounts:
         - name: {{ .Release.Name }}
           mountPath: /hooks/
+        {{- if (hasKey .Values "resources") }}
+        resources:
+          {{- toYaml .Values.resources | nindent 10 }}
+        {{- end }}
       serviceAccountName: {{ .Release.Name }}
+      {{- if (hasKey .Values "tolerations") }}
+      tolerations:
+        {{- toYaml .Values.tolerations | nindent 6 }}
+      {{- end }}
+      {{- if (hasKey .Values "nodeSelector") }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 6 }}
+      {{- end }}
       volumes:
       - name: {{ .Release.Name }}
         configMap:
