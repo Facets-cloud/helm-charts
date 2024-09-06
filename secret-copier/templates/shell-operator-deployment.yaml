@@ -28,7 +28,7 @@ spec:
           {{- toYaml .Values.resources | nindent 10 }}
         {{- end }}
       serviceAccountName: {{ .Release.Name }}
-      {{- if (hasKey .Values "tolerations") }}
+      {{- if and (hasKey .Values "tolerations") (gt (len .Values.tolerations) 0) }}
       tolerations:
         {{- toYaml .Values.tolerations | nindent 6 }}
       {{- end }}
