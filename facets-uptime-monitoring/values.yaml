@@ -33,7 +33,7 @@ controllerManager:
         - ALL
     image:
       repository: facetscloud/facets-uptime-monitoring
-      tag: 3
+      tag: 84d43167e40c629322d221f3e139af2c0f6091fc
     resources:
       limits:
         cpu: 500m
