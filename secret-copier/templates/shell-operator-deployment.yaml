@@ -34,7 +34,7 @@ spec:
       {{- end }}
       {{- if (hasKey .Values "nodeSelector") }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 6 }}
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
       {{- end }}
       volumes:
       - name: {{ .Release.Name }}
