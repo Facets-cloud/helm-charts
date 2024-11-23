@@ -18,10 +18,16 @@ controllerManager:
         cpu: 500m
         memory: 128Mi
       requests:
-        cpu: 5m
+        cpu: 50m
         memory: 64Mi
   manager:
-    logLevel: debug
+    service:
+      port: 8081
+      type: ClusterIP
+    server:
+      service:
+        port: 9090
+    logLevel: info
     args:
     - --health-probe-bind-address=:8081
     - --metrics-bind-address=127.0.0.1:8080
@@ -32,12 +38,12 @@ controllerManager:
         drop:
         - ALL
     image:
-      repository: facetscloud/facets-uptime-monitoring
-      tag: 84d43167e40c629322d221f3e139af2c0f6091fc
+      repository: vishnukvfacets/fc-uptime-monitor
+      tag: 6
     resources:
       limits:
         cpu: 500m
-        memory: 500Mi
+        memory: 128Mi
       requests:
         cpu: 10m
         memory: 64Mi
@@ -49,8 +55,45 @@ tolerations: []
 nodeSelector: {}
 metricsService:
   ports:
+  - name: http
+    port: 9090
+    protocol: TCP
+    targetPort: server
   - name: https
     port: 8443
     protocol: TCP
     targetPort: https
   type: ClusterIP
+
+frontend:
+  enabled: true
+  image:
+    repository: vishnukvfacets/fc-uptime-monitor-ui
+    tag: 11
+    pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 80
+  # Backend API endpoint configuration
+  apiEndpoint: "/api"  # This will be constructed in the deployment template
+
+enableCRDs: false
+# History Provider Configuration
+historyProvider:
+  # Choose which provider to use: "prometheus", "victoriametrics", or leave empty for none
+  type: "prometheus"
+  
+  # Prometheus configuration
+  prometheus:
+    endpoint: "http://prometheus-operator-prometheus.default.svc.cluster.local:9090"
+  
+  # VictoriaMetrics configuration
+  victoriametrics:
+    endpoint: "http://victoria-metrics-server.monitoring.svc.cluster.local"

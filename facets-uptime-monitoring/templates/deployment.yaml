@@ -47,27 +47,34 @@ spec:
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
-        image: {{ .Values.controllerManager.kubeRbacProxy.image.repository }}:{{ .Values.controllerManager.kubeRbacProxy.image.tag
-          | default .Chart.AppVersion }}
+        image: {{ .Values.controllerManager.kubeRbacProxy.image.repository }}:{{ .Values.controllerManager.kubeRbacProxy.image.tag | default .Chart.AppVersion }}
         name: kube-rbac-proxy
         ports:
         - containerPort: 8443
           name: https
           protocol: TCP
-        resources: {{- toYaml .Values.controllerManager.kubeRbacProxy.resources | nindent
-          10 }}
-        securityContext: {{- toYaml .Values.controllerManager.kubeRbacProxy.containerSecurityContext
-          | nindent 10 }}
+        resources: {{- toYaml .Values.controllerManager.kubeRbacProxy.resources | nindent 10 }}
+        securityContext: {{- toYaml .Values.controllerManager.kubeRbacProxy.containerSecurityContext | nindent 10 }}
       - args: {{- toYaml .Values.controllerManager.manager.args | nindent 8 }}
         command:
         - /manager
+        ports:
+        - containerPort: {{ .Values.controllerManager.manager.server.service.port }}
+          name: server
+          protocol: TCP
         env:
         - name: KUBERNETES_CLUSTER_DOMAIN
           value: {{ quote .Values.kubernetesClusterDomain }}
         - name: LOG_LEVEL
           value: {{ quote .Values.controllerManager.manager.logLevel }}
-        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag
-          | default .Chart.AppVersion }}
+        {{- if eq .Values.historyProvider.type "prometheus" }}
+        - name: PROMETHEUS_ENDPOINT
+          value: {{ quote .Values.historyProvider.prometheus.endpoint }}
+        {{- else if eq .Values.historyProvider.type "victoriametrics" }}
+        - name: VICTORIA_METRICS_ENDPOINT
+          value: {{ quote .Values.historyProvider.victoriametrics.endpoint }}
+        {{- end }}
+        image: {{ .Values.controllerManager.manager.image.repository }}:{{ .Values.controllerManager.manager.image.tag| default .Chart.AppVersion }}
         livenessProbe:
           httpGet:
             path: /healthz
@@ -81,10 +88,8 @@ spec:
             port: 8081
           initialDelaySeconds: 5
           periodSeconds: 10
-        resources: {{- toYaml .Values.controllerManager.manager.resources | nindent 10
-          }}
-        securityContext: {{- toYaml .Values.controllerManager.manager.containerSecurityContext
-          | nindent 10 }}
+        resources: {{- toYaml .Values.controllerManager.manager.resources | nindent 10 }}
+        securityContext: {{- toYaml .Values.controllerManager.manager.containerSecurityContext | nindent 10 }}
       securityContext:
         runAsNonRoot: true
       serviceAccountName: {{ include "chart.fullname" . }}-controller-manager

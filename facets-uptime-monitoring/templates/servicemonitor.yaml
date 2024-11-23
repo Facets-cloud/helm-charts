@@ -12,7 +12,7 @@ metadata:
     app.kubernetes.io/part-of: facets-uptime-monitoring
     app.kubernetes.io/managed-by: kustomize
 {{- include "chart.labels" . | nindent 4 }}
-  name: controller-manager-metrics-monitor
+  name: {{ .Release.Name }}-metrics-monitor
 spec:
   endpoints:
     - path: /metrics
