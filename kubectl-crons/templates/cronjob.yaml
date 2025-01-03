@@ -10,8 +10,8 @@ spec:
   suspend: false
   concurrencyPolicy: Forbid
   schedule: "{{ .schedule }}"
-  successfulJobsHistoryLimit: 10
-  failedJobsHistoryLimit: 10
+  successfulJobsHistoryLimit: {{ default 1 $.Values.successful_job_limit}}
+  failedJobsHistoryLimit: {{ default 1 $.Values.failed_job_limit}}
   jobTemplate:
     spec:
       backoffLimit: 0
