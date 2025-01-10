@@ -1,39 +1,42 @@
+{{- if .Values.enableCRDs }}
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: httpchecks.uptime.facets.cloud
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
+  creationTimestamp: null
+  name: uptimechecks.uptime.facets.cloud
   labels:
   {{- include "chart.labels" . | nindent 4 }}
 spec:
   group: uptime.facets.cloud
   names:
-    kind: HttpCheck
-    listKind: HttpCheckList
-    plural: httpchecks
+    kind: UptimeCheck
+    listKind: UptimeCheckList
+    plural: uptimechecks
     shortNames:
-    - httpcheck
-    singular: httpcheck
+    - uptimecheck
+    singular: uptimecheck
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .spec.checkType
+      name: CheckType
+      type: string
     - jsonPath: .status.ok
       name: Ok
       type: string
-    - jsonPath: .status.errors
-      name: Errors
+    - jsonPath: .status.lastRunTime
+      name: LastRunTime
       type: string
-    - jsonPath: .status.lastSuccessfulRunTime
-      name: LastSuccessfulRunTime
+    - jsonPath: .status.nextRuntime
+      name: NextRuntime
       type: string
-    - jsonPath: .status.lastSuccessfulRunDuration
-      name: LastSuccessfulRunDuration
-      type: string
-    name: v1alpha1
+    name: v1beta1
     schema:
       openAPIV3Schema:
-        description: HttpCheck is the Schema for the httpchecks API
+        description: UptimeCheck is the Schema for the uptimechecks API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -48,44 +51,68 @@ spec:
           metadata:
             type: object
           spec:
-            description: HttpCheckSpec defines the desired state of HttpCheck
+            description: UptimeCheckSpec defines the desired state of UptimeCheck
             properties:
+              checkType:
+                enum:
+                - http
+                - mongo
+                - redis
+                - tcp
+                - ssl
+                minLength: 1
+                type: string
               count:
-                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "make" to regenerate code after modifying this file'
+                minLength: 1
                 type: string
               expectedResponse:
+                minLength: 1
                 type: string
               expectedStatusCode:
+                minLength: 1
+                pattern: ^\d{3}-\d{3}$
                 type: string
               passingPercent:
+                minLength: 1
                 type: string
               requestBody:
+                minLength: 1
+                type: string
+              requestHeaders:
+                minLength: 1
                 type: string
               requestType:
+                minLength: 1
                 type: string
               runInterval:
+                minLength: 1
+                pattern: (\d+(ns|us|µs|ms|s|m|h))+
                 type: string
               seconds:
+                minLength: 1
                 type: string
               timeout:
+                minLength: 1
                 type: string
               url:
+                minLength: 1
                 type: string
+            required:
+            - checkType
+            - runInterval
+            - timeout
+            - url
             type: object
           status:
-            description: HttpCheckStatus defines the observed state of HttpCheck
+            description: UptimeCheckStatus defines the observed state of UptimeCheck
             properties:
               errors:
                 type: string
-              lastSuccessfulRunDuration:
+              lastRunTime:
                 type: string
-              lastSuccessfulRunTime:
+              nextRuntime:
                 type: string
               ok:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
                 type: string
             type: object
         type: object
@@ -93,9 +120,4 @@ spec:
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
+{{- end }}

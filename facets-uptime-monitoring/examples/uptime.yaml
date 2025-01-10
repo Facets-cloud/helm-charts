@@ -1,0 +1,69 @@
+apiVersion: uptime.facets.cloud/v1beta1
+kind: UptimeCheck
+metadata:
+  labels:
+    app.kubernetes.io/name: uptimecheck
+    app.kubernetes.io/instance: uptimecheck-sample
+    app.kubernetes.io/part-of: facets-uptime-monitoring
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: facets-uptime-monitoring
+  name: uptimecheck-google
+spec:
+  checkType: http
+  runInterval: 30s
+  timeout: 10m
+  url: https://google.com
+  expectedStatusCode: "200"
+  requestType: GET
+---
+
+apiVersion: uptime.facets.cloud/v1beta1
+kind: UptimeCheck
+metadata:
+  labels:
+    app.kubernetes.io/name: uptimecheck
+    app.kubernetes.io/instance: uptimecheck-sample
+    app.kubernetes.io/part-of: facets-uptime-monitoring
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: facets-uptime-monitoring
+  name: uptimecheck-redis
+spec:
+  checkType: redis
+  runInterval: 30s
+  timeout: 10m
+  url: localhost:6379
+
+---
+
+apiVersion: uptime.facets.cloud/v1beta1
+kind: UptimeCheck
+metadata:
+  labels:
+    app.kubernetes.io/name: uptimecheck
+    app.kubernetes.io/instance: uptimecheck-sample
+    app.kubernetes.io/part-of: facets-uptime-monitoring
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: facets-uptime-monitoring
+  name: uptimecheck-mongo
+spec:
+  checkType: mongo
+  runInterval: 30s
+  timeout: 10m
+  url: mongodb://localhost:27017
+
+---
+apiVersion: uptime.facets.cloud/v1beta1
+kind: UptimeCheck
+metadata:
+  labels:
+    app.kubernetes.io/name: uptimecheck
+    app.kubernetes.io/instance: uptimecheck-sample
+    app.kubernetes.io/part-of: facets-uptime-monitoring
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: facets-uptime-monitoring
+  name: uptimecheck-tcp
+spec:
+  checkType: tcp
+  runInterval: 30s
+  timeout: 10m
+  url: google.com:443

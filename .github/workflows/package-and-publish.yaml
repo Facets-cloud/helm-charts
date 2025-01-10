@@ -1,45 +1,48 @@
-name: Package and Publish Helm Chart
+name: Package and Publish Helm Charts
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/Chart.yaml'
   workflow_dispatch:
 
 env:
-  BRANCH: gh-pages
+  HELM_VERSION: v3.12.3
+  CHART_RELEASER_VERSION: v1.5.0
 
 jobs:
-  package:
+  release:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Package and publish chart
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl
-          curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
-          ./linux-amd64/helm package kubectl-crons
-          ./linux-amd64/helm package scheduled-deployment-scaler
-          ./linux-amd64/helm package windows-exporter
-          ./linux-amd64/helm package facets-notification-controller
-          ./linux-amd64/helm package azure-nfs-log-collector
-          ./linux-amd64/helm package database-operator
-          ./linux-amd64/helm package scheduled-hpa-updater
-          ./linux-amd64/helm package facets-uptime-monitoring
-          ./linux-amd64/helm package secret-copier
-          ./linux-amd64/helm package kube-audit-rest
-          ./linux-amd64/helm package mongodb-auth-operator
-          mkdir -p charts
-          mv *.tgz charts/
-          ./linux-amd64/helm repo index charts/
-
-      - name: Publish to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
         with:
-          publish_dir: charts
-          keep_files: true
-          force_orphan: false
-          deploy_key: ${{ secrets.DEPLOY_KEY }}
-          branch: ${{ env.BRANCH }}
+          fetch-depth: 0
 
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
 
+      - name: Add dependency repositories
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      - name: Configure Git
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.5.0
+        with:
+          charts_dir: .
+          config: cr.yaml
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: "true"

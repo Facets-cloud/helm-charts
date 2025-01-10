@@ -1,0 +1,6 @@
+owner: facets-cloud
+git-repo: helm-charts
+package-path: .cr-release-packages
+index-path: .cr-index
+helm-version: v3.12.3
+skip-existing: true
