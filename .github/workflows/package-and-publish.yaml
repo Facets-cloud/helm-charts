@@ -36,7 +36,7 @@ jobs:
             fi
           done
           mv *.tgz charts/
-          helm repo index charts/
+          ./linux-amd64/helm repo index charts/
 
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
