@@ -31,7 +31,7 @@ controllerManager:
         drop:
         - ALL
     image:
-      repository: pramodhfacets/notification-controller
+      repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/facets-notification-controller
       tag: latest
       pullPolicy: Always
     resources:
