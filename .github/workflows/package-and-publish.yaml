@@ -13,25 +13,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Package and publish chart
+      - name: Set up Helm
         run: |
           sudo apt-get update
           sudo apt-get install -y curl
           curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
-          ./linux-amd64/helm package kubectl-crons
-          ./linux-amd64/helm package scheduled-deployment-scaler
-          ./linux-amd64/helm package windows-exporter
-          ./linux-amd64/helm package facets-notification-controller
-          ./linux-amd64/helm package azure-nfs-log-collector
-          ./linux-amd64/helm package database-operator
-          ./linux-amd64/helm package scheduled-hpa-updater
-          ./linux-amd64/helm package facets-uptime-monitoring
-          ./linux-amd64/helm package secret-copier
-          ./linux-amd64/helm package kube-audit-rest
-          ./linux-amd64/helm package mongodb-auth-operator
+          sudo mv linux-amd64/helm /usr/local/bin/helm
+
+      - name: Package and publish chart
+        run: |
+          for dir in */; do
+            if [[ "$dir" != .* ]]; then
+              helm package "$dir"
+            fi
+          done
           mkdir -p charts
           mv *.tgz charts/
-          ./linux-amd64/helm repo index charts/
+          helm repo index charts/
+      
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add ../charts/
+          git commit -m "Updated Helm charts"
+          git push origin master
 
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
@@ -41,5 +47,3 @@ jobs:
           force_orphan: false
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           branch: ${{ env.BRANCH }}
-
-
