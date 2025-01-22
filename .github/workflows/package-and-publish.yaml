@@ -29,6 +29,10 @@ jobs:
           done
           mkdir -p charts
           mv *.tgz charts/
+          if [[ "${{ env.BRANCH }}" != "master" ]]; then
+            mkdir -p "charts/${{ env.BRANCH }}"
+            mv charts/*.tgz "charts/${{ env.BRANCH }}/"
+          fi
           helm repo index charts/
       
       - name: Commit and push changes
@@ -48,3 +52,4 @@ jobs:
           force_orphan: false
           deploy_key: ${{ secrets.DEPLOY_KEY }}
           branch: ${{ env.BRANCH }}
+          destination_dir: ${{ env.BRANCH }}
