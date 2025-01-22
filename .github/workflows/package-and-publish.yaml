@@ -23,7 +23,7 @@ jobs:
       - name: Package and publish chart
         run: |
           for dir in */; do
-            if [[ "$dir" != .* ]]; then
+            if [[ "$dir" != .* ]] && [[ "$dir" != "charts/" ]] && [[ -f "$dir/Chart.yaml" ]]; then
               helm package "$dir"
             fi
           done
