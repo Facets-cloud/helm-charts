@@ -31,7 +31,7 @@ jobs:
           mv *.tgz charts/
           if [[ "${{ env.BRANCH }}" != "master" ]]; then
             mkdir -p "charts/${{ env.BRANCH }}"
-            mv charts/*.tgz "charts/${{ env.BRANCH }}/"
+            cp charts/*.tgz "charts/${{ env.BRANCH }}/"
           fi
           helm repo index charts/
       
