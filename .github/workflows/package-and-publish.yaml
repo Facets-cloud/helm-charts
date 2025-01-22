@@ -32,6 +32,7 @@ jobs:
           helm repo index charts/
       
       - name: Commit and push changes
+        if: github.ref == 'refs/heads/master'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
