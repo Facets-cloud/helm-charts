@@ -3,39 +3,45 @@ name: Package and Publish Helm Chart
 on:
   workflow_dispatch:
 
-env:
-  BRANCH: gh-pages
-
 jobs:
   package:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
+        uses: actions/checkout@v4
+      
+      - name: Checkout gh-pages branch code
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: tmp/charts
+      
       - name: Set up Helm
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl
-          curl https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
+          sudo apt-get install -y curl tar
+          curl -sSL https://get.helm.sh/helm-v3.5.1-linux-amd64.tar.gz | tar xz
           sudo mv linux-amd64/helm /usr/local/bin/helm
+      
+      - name: Get previous build charts
+        run: |
+          mkdir -p charts
+          cp tmp/charts/*.tgz charts
 
       - name: Package and publish chart
         run: |
           for dir in */; do
-            if [[ "$dir" != .* ]] && [[ "$dir" != "charts/" ]] && [[ -f "$dir/Chart.yaml" ]]; then
+            if [[ -d "$dir" ]] && [[ -f "$dir/Chart.yaml" ]]; then
               helm package "$dir"
             fi
           done
-          mkdir -p charts
           mv *.tgz charts/
           helm repo index charts/
 
       - name: Publish to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          publish_dir: ./charts
-          keep_files: true
+          publish_dir: charts
+          keep_files: false
           force_orphan: false
           deploy_key: ${{ secrets.DEPLOY_KEY }}
-          branch: ${{ env.BRANCH }}
