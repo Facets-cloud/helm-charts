@@ -6,14 +6,6 @@ metadata:
   {{- include "facets-notification-controller.labels" . | nindent 4 }}
 rules:
 - apiGroups:
-  - argoproj.io
-  resources:
-  - rollouts
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
   - apps
   resources:
   - deployments
@@ -24,27 +16,23 @@ rules:
 - apiGroups:
   - apps
   resources:
-  - replicasets
+  - deployments/status
+  verbs:
+  - get
+- apiGroups:
+  - argoproj.io.facets.cloud
+  resources:
+  - rollouts
   verbs:
   - get
   - list
   - watch
 - apiGroups:
-  - apps
+  - argoproj.io.facets.cloud
   resources:
-  - statefulsets
+  - rollouts/status
   verbs:
   - get
-  - list
-  - watch
-- apiGroups:
-  - autoscaling
-  resources:
-  - horizontalpodautoscalers
-  verbs:
-  - get
-  - list
-  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
