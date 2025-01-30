@@ -20,7 +20,7 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - argoproj.io.facets.cloud
+  - argoproj.io
   resources:
   - rollouts
   verbs:
@@ -28,7 +28,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - argoproj.io.facets.cloud
+  - argoproj.io
   resources:
   - rollouts/status
   verbs:
