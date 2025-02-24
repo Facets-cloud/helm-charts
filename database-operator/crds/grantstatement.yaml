@@ -1,33 +1,30 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: grants.postgresql.facets.cloud
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
-  labels:
-  {{- include "database-operator.labels" . | nindent 4 }}
+  name: grantstatements.postgresql.facets.cloud
 spec:
   group: postgresql.facets.cloud
   names:
-    kind: Grant
-    listKind: GrantList
-    plural: grants
-    singular: grant
+    kind: GrantStatement
+    listKind: GrantStatementList
+    plural: grantstatements
+    singular: grantstatement
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
+    - jsonPath: .spec.database
+      name: Database
+      type: string
     - jsonPath: .spec.roleRef.name
-      name: For Role
+      name: Role
       type: string
     - jsonPath: .status.conditions[-1:].status
       name: Status
       type: string
     - jsonPath: .status.conditions[-1:].reason
       name: Reason
-      type: string
-    - jsonPath: .status.conditions[-1:].message
-      name: Message
-      priority: 1
       type: string
     - jsonPath: .status.conditions[-1:].lastTransitionTime
       name: Last Transition Time
@@ -39,7 +36,7 @@ spec:
     name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: Grant is the Schema for the grants API
+        description: GrantStatement is the Schema for the grantstatements API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -54,18 +51,13 @@ spec:
           metadata:
             type: object
           spec:
-            description: GrantSpec defines the desired state of Grant
+            description: GrantStatementSpec defines the desired state of GrantStatement
             properties:
               database:
-                description: Defines the Database to grant permission for a role
                 type: string
-              privileges:
-                description: Defines the list of permissions to grant for a role
-                items:
-                  type: string
-                type: array
               roleRef:
-                description: Defines the role reference to grant permissions
+                description: A ResourceReference is a reference to a resource in an
+                  arbitrary namespace.
                 properties:
                   name:
                     description: Name of the resource.
@@ -77,25 +69,26 @@ spec:
                 - name
                 - namespace
                 type: object
-              schema:
-                default: ""
-                description: Defines the Schema to grant permission for a role
-                type: string
-              table:
-                default: ""
-                description: Defines the Database to grant permission for a role
-                type: string
+              statements:
+                items:
+                  type: string
+                minItems: 1
+                type: array
+            required:
+            - database
+            - roleRef
+            - statements
             type: object
           status:
-            description: GrantStatus defines the observed state of Grant
+            description: GrantStatementStatus defines the observed state of GrantStatement
             properties:
               conditions:
                 items:
                   description: "Condition contains details for one aspect of the current
                     state of this API Resource. --- This struct is intended for direct
                     use as an array at the field path .status.conditions.  For example,
-                    \n type FooStatus struct{ // Represents the observations of a foo's
-                    current state. // Known .status.conditions.type are: \"Available\",
+                    \n type FooStatus struct{ // Represents the observations of a
+                    foo's current state. // Known .status.conditions.type are: \"Available\",
                     \"Progressing\", and \"Degraded\" // +patchMergeKey=type // +patchStrategy=merge
                     // +listType=map // +listMapKey=type Conditions []metav1.Condition
                     `json:\"conditions,omitempty\" patchStrategy:\"merge\" patchMergeKey:\"type\"
@@ -109,8 +102,8 @@ spec:
                       format: date-time
                       type: string
                     message:
-                      description: message is a human readable message indicating details
-                        about the transition. This may be an empty string.
+                      description: message is a human readable message indicating
+                        details about the transition. This may be an empty string.
                       maxLength: 32768
                       type: string
                     observedGeneration:
@@ -124,11 +117,11 @@ spec:
                       type: integer
                     reason:
                       description: reason contains a programmatic identifier indicating
-                        the reason for the condition's last transition. Producers of
-                        specific condition types may define expected values and meanings
-                        for this field, and whether the values are considered a guaranteed
-                        API. The value should be a CamelCase string. This field may
-                        not be empty.
+                        the reason for the condition's last transition. Producers
+                        of specific condition types may define expected values and
+                        meanings for this field, and whether the values are considered
+                        a guaranteed API. The value should be a CamelCase string.
+                        This field may not be empty.
                       maxLength: 1024
                       minLength: 1
                       pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
@@ -157,34 +150,36 @@ spec:
                   - type
                   type: object
                 type: array
-              previousState:
-                description: Store Previous state
+              previousGrantStatementState:
                 properties:
                   database:
                     type: string
-                  privileges:
+                  roleRef:
+                    description: A ResourceReference is a reference to a resource
+                      in an arbitrary namespace.
+                    properties:
+                      name:
+                        description: Name of the resource.
+                        type: string
+                      namespace:
+                        description: Namespace of the resource.
+                        type: string
+                    required:
+                    - name
+                    - namespace
+                    type: object
+                  statements:
                     items:
                       type: string
                     type: array
-                  schema:
-                    type: string
-                  table:
-                    type: string
-                  type:
-                    type: string
+                required:
+                - database
+                - roleRef
+                - statements
                 type: object
-            required:
-            - conditions
-            - previousState
             type: object
         type: object
     served: true
     storage: true
     subresources:
       status: {}
-status:
-  acceptedNames:
-    kind: ""
-    plural: ""
-  conditions: []
-  storedVersions: []
