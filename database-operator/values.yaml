@@ -33,7 +33,6 @@ controllerManager:
         - ALL
     image:
       repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/database-operator
-      tag: latest
     resources:
       limits:
         cpu: 500m
