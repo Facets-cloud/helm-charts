@@ -4,8 +4,6 @@ metadata:
   name: roles.postgresql.facets.cloud
   annotations:
     controller-gen.kubebuilder.io/version: v0.11.1
-  labels:
-  {{- include "database-operator.labels" . | nindent 4 }}
 spec:
   group: postgresql.facets.cloud
   names:
