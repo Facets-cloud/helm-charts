@@ -8,7 +8,7 @@ image:
   repository: facetscloud/image-pull-secrets
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: 1
+  tag: 4
 
 serviceAccount:
   # Specifies whether a service account should be created
