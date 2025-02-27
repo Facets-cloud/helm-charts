@@ -32,7 +32,7 @@ controllerManager:
         drop:
         - ALL
     image:
-      repository: 313496281593.dkr.ecr.us-east-1.amazonaws.com/database-operator
+      repository: facetscloud/postgresql-operator
     resources:
       limits:
         cpu: 500m
