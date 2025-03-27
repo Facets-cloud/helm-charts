@@ -24,7 +24,7 @@ The following table lists the values accepted by the chart
 ```bash
 helm repo add facets-cloud https://facets-cloud.github.io/helm-charts
 
-helm install helm install myrelease facets-cloud/scheduled-deployment-scaler -f my-scaling-schedules.yaml
+helm install myrelease facets-cloud/scheduled-deployment-scaler -f my-scaling-schedules.yaml
 ```
 
 ## Sample Values
@@ -32,12 +32,12 @@ helm install helm install myrelease facets-cloud/scheduled-deployment-scaler -f 
 ```yaml
 scalingSchedules:
   schedule1:
-    schedule: "0 45 22 * * *"
+    schedule: "0 4 2 * *"
     deployment: deployment1
     desiredReplicas: 4
     namespace: default
   schedule2:
-    schedule: "0 0 * * * *"
+    schedule: "0 0 * * *"
     deployment: deployment2
     desiredReplicas: 2
     namespace: test-namespace

@@ -18,7 +18,7 @@ spec:
           containers:
             - name: scaling-job
               image: bitnami/kubectl:1.21
-              command: ["/bin/sh", "-c", "kubectl scale --replicas={{ $schedule.desiredReplicas }} deployment {{ $schedule.deployment }} -n {{ default $schedule.namespace "default" }}"]
+              command: ["/bin/sh", "-c", "kubectl scale --replicas={{ $schedule.desiredReplicas }} deployment {{ $schedule.deployment }} -n {{ $schedule.namespace | default "default" }}"]
           restartPolicy: OnFailure
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
