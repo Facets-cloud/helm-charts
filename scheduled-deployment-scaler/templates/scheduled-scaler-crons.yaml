@@ -29,6 +29,7 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
+  namespace: {{ .Release.Namespace }}
   name: {{ $sa }}
 
 ---
