@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: shell-operator
-        image: "ghcr.io/flant/shell-operator:latest"
+        image: "ghcr.io/flant/shell-operator:v1.6.1"
         imagePullPolicy: Always
         volumeMounts:
         - name: {{ .Release.Name }}
