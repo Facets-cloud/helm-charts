@@ -28,7 +28,7 @@ controllerManager:
       - --leader-elect
     image:
       repository: facetscloud/mongodb-auth-operator
-      tag: 2
+      tag: 13
     resources:
       limits:
         cpu: 500m

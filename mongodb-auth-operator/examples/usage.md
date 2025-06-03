@@ -25,9 +25,10 @@ spec:
   dbRoles:
     - db: testdb
       role: test-role-1
+  userNameOverride: actual-user-name
 ```
 
-In this example, a new user named `test-user` is being created with the password stored in the `mongo` Kubernetes secret. The user has the `test-role-1` role in the `testdb` database.
+In this example, a new user named `actual-user-name` is being created with the password stored in the `mongo` Kubernetes secret. The user has the `test-role-1` role in the `testdb` database. If `userNameOverride` is not set the username is taken from name of the user crd created.
 
 ## Role
 

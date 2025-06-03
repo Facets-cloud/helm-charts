@@ -10,9 +10,10 @@ spec:
     namespace: default
   customData:
     custom: "Example data"
-  mechanisms: ["SCRAM-SHA-1"]
+  mechanisms: [ "SCRAM-SHA-1" ]
   rolesToRole:
-    - test-role-1
+  - test-role-1
   dbRoles:
-    - db: testdb
-      role: test-role-1
+  - db: testdb
+    role: test-role-1
+  userNameOverride: actual-user-name
