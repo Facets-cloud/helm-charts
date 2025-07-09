@@ -1,3 +1,6 @@
+annotations: {}
+podAnnotations: {}
+
 Config:
   add_or_update_secret: |
     #!/usr/bin/env bash
