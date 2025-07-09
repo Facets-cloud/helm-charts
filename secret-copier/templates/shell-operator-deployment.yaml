@@ -17,6 +17,8 @@ spec:
     metadata:
       labels:
         app: {{ .Release.Name }}
+      annotations:
+        {{- toYaml .Values.podAnnotations | nindent 8 }}
     spec:
       containers:
       - name: shell-operator
