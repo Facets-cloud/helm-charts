@@ -6,6 +6,8 @@ metadata:
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ .Release.Name }}
+  annotations:
+    {{- toYaml .Values.annotations | nindent 4 }}
 spec:
   replicas: 1
   selector:
