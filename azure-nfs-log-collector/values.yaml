@@ -5,6 +5,10 @@ global:
     operator: Equal
     value: spot
 
+labels:
+  resource_type: helm
+  resource_name: azure-nfs-log-collector
+
 logsVolume:
   persistentVolumeClaim:
     storageSize: 20Gi

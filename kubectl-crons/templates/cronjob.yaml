@@ -6,6 +6,8 @@ metadata:
   labels:
     app: cronjob-{{ .cronName }}
     release: cronjob-{{ .cronName }}
+    resource_type: "configuration"
+    resource_name: "kubectl-crons"
 spec:
   suspend: false
   concurrencyPolicy: Forbid
