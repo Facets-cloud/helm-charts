@@ -112,7 +112,7 @@ template:
           sizeLimit: 100Mi
     containers:
     - name: {{ include "kube-audit-rest.hooks.fullname" .root }}
-      image: bitnami/kubectl
+      image: bitnamilegacy/kubectl
       {{- with .args }}
       command: ["/bin/sh", "-c"]
       args:
