@@ -17,7 +17,7 @@ spec:
           serviceAccountName: {{ $sa }}
           containers:
             - name: scaling-job
-              image: bitnami/kubectl:1.21
+              image: bitnamilegacy/kubectl:1.21
               command: ["/bin/sh", "-c", "kubectl scale --replicas={{ $schedule.desiredReplicas }} deployment {{ $schedule.deployment }} -n {{ $schedule.namespace | default "default" }}"]
           restartPolicy: OnFailure
   concurrencyPolicy: Forbid

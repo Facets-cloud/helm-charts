@@ -11,7 +11,7 @@ The following table lists the values accepted by the chart
 | `cronConfig` | Map of objects. The key of the map should be the name of the configurations to be used and the value should be the desired value for the cronjob to run | `{}`                  |
 | `tolerations` | The tolerations to be added to the pod created by cronjob     | `null`  |
 | `nodeSelector` | The nodeSelector to be added to the pod created by cronjob     | `null`  |
-| `image` | The container image for the cronjob     | `bitnami/kubectl:1.16`  |
+| `image` | The container image for the cronjob     | `bitnamilegacy/kubectl:1.24.16`  |
 
 ## Cronjob Configurations
 
@@ -48,5 +48,5 @@ tolerations:
 nodeSelector:
   kubernetes.io/os: linux
 
-image: "bitnami/kubectl:1.16"
+image: "bitnamilegacy/kubectl:1.24.16"
 ```
