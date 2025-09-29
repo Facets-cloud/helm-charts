@@ -372,7 +372,19 @@ spec:
               targettedResources:
                 description: TargettedResources specifies resources to target
                 items:
-                  type: string
+                  description: TargetResource defines a resource to target during
+                    terraform operations
+                  properties:
+                    name:
+                      description: Name of the resource
+                      type: string
+                    type:
+                      description: Type of the resource
+                      type: string
+                  required:
+                  - name
+                  - type
+                  type: object
                 type: array
             required:
             - artifactories
