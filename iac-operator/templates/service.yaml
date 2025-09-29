@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-metrics
+  labels:
+    control-plane: controller-manager
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - port: {{ .Values.service.port }}
+    targetPort: {{ .Values.service.targetPort }}
+    protocol: TCP
+    name: metrics
+  selector:
+    control-plane: controller-manager
+    {{- include "iac-operator.selectorLabels" . | nindent 4 }}

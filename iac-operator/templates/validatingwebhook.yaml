@@ -1,0 +1,35 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-validating-webhook
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "iac-operator.fullname" . }}-webhook-cert
+webhooks:
+- name: release.iac.facets.cloud
+  clientConfig:
+    service:
+      name: {{ include "iac-operator.fullname" . }}-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /validate-iac-facets-cloud-v1-release
+  failurePolicy: {{ .Values.webhook.failurePolicy }}
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  sideEffects: None
+  timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+  rules:
+  - apiGroups:
+    - iac.facets.cloud
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - releases
+    scope: "*"
+{{- end }}

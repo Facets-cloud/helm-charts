@@ -1,0 +1,26 @@
+{{- if .Values.api.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-api
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+  {{- with .Values.api.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.api.service.type }}
+  ports:
+  - name: api
+    port: {{ .Values.api.service.port }}
+    targetPort: webhook
+    protocol: TCP
+    {{- if and (eq .Values.api.service.type "NodePort") .Values.api.service.nodePort }}
+    nodePort: {{ .Values.api.service.nodePort }}
+    {{- end }}
+  selector:
+    control-plane: controller-manager
+    {{- include "iac-operator.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,34 @@
+{{- if .Values.webhook.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-webhook-cert
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+spec:
+  dnsNames:
+  - {{ include "iac-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc
+  - {{ include "iac-operator.fullname" . }}-webhook-service.{{ .Release.Namespace }}.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: {{ include "iac-operator.fullname" . }}-webhook-issuer
+  secretName: {{ .Values.webhook.certSecret }}
+  duration: 8760h # 1 year
+  renewBefore: 720h # 30 days
+  usages:
+  - server auth
+  - digital signature
+  - key encipherment
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-webhook-issuer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+spec:
+  selfSigned: {}
+{{- end }}
+
