@@ -15,7 +15,7 @@ spec:
   ports:
   - name: api
     port: {{ .Values.api.service.port }}
-    targetPort: webhook
+    targetPort: api
     protocol: TCP
     {{- if and (eq .Values.api.service.type "NodePort") .Values.api.service.nodePort }}
     nodePort: {{ .Values.api.service.nodePort }}
