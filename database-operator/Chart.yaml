@@ -2,11 +2,11 @@ apiVersion: v2
 name: database-operator
 description: A Helm chart for database operator
 type: application
-version: 1.1.0
-appVersion: v1.1.0
+version: 1.2.0
+appVersion: v1.2.0
 home: https://facets-cloud.github.io
 sources:
-  - https://github.com/Facets-cloud/helm-charts/tree/master/database-operator
+- https://github.com/Facets-cloud/helm-charts/tree/master/database-operator
 maintainers:
-  - name: Pramodh Ayyappan
-    email: pramodh.ayyappan@facets.cloud
+- name: Pramodh Ayyappan
+  email: pramodh.ayyappan@facets.cloud
