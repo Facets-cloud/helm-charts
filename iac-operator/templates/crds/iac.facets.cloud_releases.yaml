@@ -174,9 +174,6 @@ spec:
                   region:
                     description: Region is the cloud region
                     type: string
-                  stackName:
-                    description: StackName is the name of the stack
-                    type: string
                   vpcCIDR:
                     description: VpcCIDR is the VPC CIDR block
                     type: string
@@ -206,9 +203,6 @@ spec:
                     type: string
                   region:
                     description: Region is the cloud region
-                    type: string
-                  stackName:
-                    description: StackName is the name of the stack
                     type: string
                 required:
                 - id
@@ -353,6 +347,34 @@ spec:
                   type: object
                 minItems: 1
                 type: array
+              phaseOverrides:
+                additionalProperties:
+                  description: |-
+                    ReleaseTerraformOptions defines release-specific terraform option overrides
+                    This extends the template's TerraformOptions with release-specific values
+                  properties:
+                    forceUnlockLockID:
+                      description: |-
+                        ForceUnlockLockID provides the lock ID to unlock when template has enableForceUnlock: true
+                        This is only used if the template's terraformOptions.enableForceUnlock is true
+                        Format: UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+                      type: string
+                    lockTimeout:
+                      description: LockTimeout override for the template's lock timeout
+                        setting
+                      type: string
+                    parallelism:
+                      description: Parallelism override for the template's parallelism
+                        setting
+                      type: integer
+                    refresh:
+                      description: Refresh override for the template's refresh setting
+                      type: boolean
+                  type: object
+                description: |-
+                  PhaseOverrides allows per-phase override of terraform options from the template
+                  Key is the phase name (e.g., "plan", "apply")
+                type: object
               project:
                 description: Project identifies the project name
                 type: string
@@ -465,6 +487,12 @@ spec:
                   - type
                   type: object
                 type: array
+              conflictingReleases:
+                description: ConflictingReleases lists releases blocking this release
+                  due to resource conflicts
+                items:
+                  type: string
+                type: array
               currentPhase:
                 description: CurrentPhase indicates which phase is currently executing
                 type: string
@@ -480,15 +508,49 @@ spec:
                 description: EnvironmentLockedBy indicates which release currently
                   holds the environment lock
                 type: string
+              executionID:
+                description: |-
+                  ExecutionID is a unique identifier for this release execution lifecycle
+                  Used for correlating all traces/events for a single release deployment from start to finish
+                  The trace ID is deterministically derived from this execution ID
+                type: string
               executionStartTime:
                 description: ExecutionStartTime is when the release actually started
                   executing (transitioned to Running)
                 format: date-time
                 type: string
+              isFullRelease:
+                description: IsFullRelease indicates whether this is a full release
+                  (no targeted resources)
+                type: boolean
+              lockedResources:
+                description: LockedResources lists resources currently locked by this
+                  release
+                items:
+                  description: TargetResource defines a resource to target during
+                    terraform operations
+                  properties:
+                    name:
+                      description: Name of the resource
+                      type: string
+                    type:
+                      description: Type of the resource
+                      type: string
+                  required:
+                  - name
+                  - type
+                  type: object
+                type: array
               message:
                 description: Message provides additional information about the current
                   status
                 type: string
+              parallelReleases:
+                description: ParallelReleases lists other releases running in parallel
+                  in same environment
+                items:
+                  type: string
+                type: array
               phase:
                 description: Phase represents the current overall phase of the release
                 enum:
