@@ -1,4 +1,5 @@
 ---
+---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -208,6 +209,12 @@ spec:
                 - id
                 - name
                 type: object
+              forceUnlockLockID:
+                description: |-
+                  ForceUnlockLockID provides the lock ID to unlock when template has enableForceUnlock: true
+                  This is only used if the template's terraformOptions.enableForceUnlock is true
+                  Format: UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+                type: string
               logLevelOverride:
                 description: LogLevelOverride overrides the default log level
                 enum:
@@ -347,34 +354,6 @@ spec:
                   type: object
                 minItems: 1
                 type: array
-              phaseOverrides:
-                additionalProperties:
-                  description: |-
-                    ReleaseTerraformOptions defines release-specific terraform option overrides
-                    This extends the template's TerraformOptions with release-specific values
-                  properties:
-                    forceUnlockLockID:
-                      description: |-
-                        ForceUnlockLockID provides the lock ID to unlock when template has enableForceUnlock: true
-                        This is only used if the template's terraformOptions.enableForceUnlock is true
-                        Format: UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-                      type: string
-                    lockTimeout:
-                      description: LockTimeout override for the template's lock timeout
-                        setting
-                      type: string
-                    parallelism:
-                      description: Parallelism override for the template's parallelism
-                        setting
-                      type: integer
-                    refresh:
-                      description: Refresh override for the template's refresh setting
-                      type: boolean
-                  type: object
-                description: |-
-                  PhaseOverrides allows per-phase override of terraform options from the template
-                  Key is the phase name (e.g., "plan", "apply")
-                type: object
               project:
                 description: Project identifies the project name
                 type: string
@@ -408,6 +387,28 @@ spec:
                   - type
                   type: object
                 type: array
+              terraformOptions:
+                description: |-
+                  TerraformOptions allows override of terraform options from the template
+                  These options apply to all phases in the release
+                properties:
+                  allowDestroy:
+                    description: |-
+                      AllowDestroy enables replacing prevent_destroy=true with prevent_destroy=false
+                      This flag is passed to iac-generator when set to true
+                    type: boolean
+                  lockTimeout:
+                    description: LockTimeout override for the template's lock timeout
+                      setting
+                    type: string
+                  parallelism:
+                    description: Parallelism override for the template's parallelism
+                      setting
+                    type: integer
+                  refresh:
+                    description: Refresh override for the template's refresh setting
+                    type: boolean
+                type: object
             required:
             - artifactories
             - blueprintAttributes
