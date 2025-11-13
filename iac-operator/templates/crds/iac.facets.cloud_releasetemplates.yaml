@@ -95,12 +95,6 @@ spec:
                         TerraformOptions configures Terraform CLI flags for this phase
                         These options apply to all terraform commands in this phase
                       properties:
-                        enableForceUnlock:
-                          description: |-
-                            EnableForceUnlock indicates whether force-unlock should be executed before phase commands
-                            The actual lock ID must be provided in the Release CR's phaseOverrides
-                            Use with caution - only when you're sure no other process is using the lock
-                          type: boolean
                         lockTimeout:
                           description: |-
                             LockTimeout sets the duration Terraform will wait to obtain a state lock
@@ -117,10 +111,6 @@ spec:
                             Maps to -refresh flag for plan/apply commands
                           type: boolean
                       type: object
-                    waitForApproval:
-                      description: WaitForApproval indicates if manual approval is
-                        required
-                      type: boolean
                   required:
                   - name
                   type: object

@@ -1,5 +1,4 @@
 ---
----
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
@@ -209,12 +208,6 @@ spec:
                 - id
                 - name
                 type: object
-              forceUnlockLockID:
-                description: |-
-                  ForceUnlockLockID provides the lock ID to unlock when template has enableForceUnlock: true
-                  This is only used if the template's terraformOptions.enableForceUnlock is true
-                  Format: UUID string (e.g., "a1b2c3d4-e5f6-7890-abcd-ef1234567890")
-                type: string
               logLevelOverride:
                 description: LogLevelOverride overrides the default log level
                 enum:
@@ -353,6 +346,21 @@ spec:
                   - source
                   type: object
                 minItems: 1
+                type: array
+              overrideCommands:
+                description: |-
+                  OverrideCommands contains custom shell commands to execute in release phases.
+                  These commands are accessible via /config/release.yaml in phase pods and can be
+                  extracted using yq in ReleaseTemplate phase commands.
+
+                  Example usage in ReleaseTemplate:
+                    yq eval '.spec.overrideCommands[]' /config/release.yaml | while read cmd; do eval "$cmd"; done
+
+                  Commands are stored in the CRD for type safety and validation, but execution
+                  logic is defined in the ReleaseTemplate phases (not handled by the operator).
+                items:
+                  type: string
+                maxItems: 50
                 type: array
               project:
                 description: Project identifies the project name
