@@ -162,6 +162,24 @@ spec:
                 environment:
                   description: Environment identifies the target environment
                   properties:
+                    awsRegion:
+                      description: AWSRegion specifies the AWS region
+                      type: string
+                    cloud:
+                      description: Cloud specifies the cloud provider
+                      type: string
+                    cloudTags:
+                      additionalProperties:
+                        type: string
+                      description: CloudTags contains cloud resource tags
+                      type: object
+                    commonEnvironmentVariables:
+                      additionalProperties:
+                        type: string
+                      description:
+                        CommonEnvironmentVariables contains common environment
+                        variables
+                      type: object
                     extra:
                       additionalProperties:
                         type: string
@@ -179,6 +197,9 @@ spec:
                       description:
                         ParentEnvironmentID references a parent environment
                         for state inheritance
+                      type: string
+                    stackName:
+                      description: StackName is the stack name for the environment
                       type: string
                   required:
                     - id
