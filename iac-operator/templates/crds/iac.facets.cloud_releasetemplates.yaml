@@ -105,6 +105,11 @@ spec:
                           TerraformOptions configures Terraform CLI flags for this phase
                           These options apply to all terraform commands in this phase
                         properties:
+                          allowDestroy:
+                            description: |-
+                              AllowDestroy enables replacing prevent_destroy=true with prevent_destroy=false
+                              in downloaded Terraform modules. Used for destroy operations.
+                            type: boolean
                           lockTimeout:
                             description: |-
                               LockTimeout sets the duration Terraform will wait to obtain a state lock

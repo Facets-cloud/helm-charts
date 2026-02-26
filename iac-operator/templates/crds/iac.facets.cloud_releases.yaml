@@ -187,6 +187,13 @@ spec:
                         Extra contains additional environment fields that
                         flow through to terraform var.cluster
                       type: object
+                    globalVariables:
+                      additionalProperties:
+                        type: string
+                      description:
+                        GlobalVariables contains global variables that flow
+                        through to terraform var.cluster
+                      type: object
                     id:
                       description: ID is the unique identifier for the environment
                       type: string
