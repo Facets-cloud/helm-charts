@@ -268,13 +268,6 @@ spec:
                                         OutputName is the specific output
                                         to reference
                                       type: string
-                                    providers:
-                                      description:
-                                        Providers lists provider names to
-                                        pass through
-                                      items:
-                                        type: string
-                                      type: array
                                     resourceName:
                                       description:
                                         ResourceName is the name of the resource
@@ -292,6 +285,13 @@ spec:
                                 description:
                                   description: Description of the input
                                   type: string
+                                providers:
+                                  description:
+                                    Providers lists provider names that this
+                                    input requires from the referenced resource
+                                  items:
+                                    type: string
+                                  type: array
                                 required:
                                   description: Required indicates if this input is mandatory
                                   type: boolean
@@ -421,13 +421,6 @@ spec:
                                           OutputName is the specific output
                                           to reference
                                         type: string
-                                      providers:
-                                        description:
-                                          Providers lists provider names
-                                          to pass through
-                                        items:
-                                          type: string
-                                        type: array
                                       resourceName:
                                         description:
                                           ResourceName is the name of the
