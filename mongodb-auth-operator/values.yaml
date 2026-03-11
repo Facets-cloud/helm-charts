@@ -7,7 +7,7 @@ controllerManager:
       - --logtostderr=true
       - --v=0
     image:
-      repository: gcr.io/kubebuilder/kube-rbac-proxy
+      repository: quay.io/brancz/kube-rbac-proxy
       tag: v0.13.1
     resources:
       limits:
