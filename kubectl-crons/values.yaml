@@ -10,7 +10,17 @@ cronConfig:
   schedule: "0 0 * * *"
   command: "kubectl get pod --field-selector=status.phase='Failed'| grep -E 'Completed' | awk '{print $1}' | xargs -r kubectl delete pod -n default"
 image: "bitnamilegacy/kubectl:1.24.16"
-# tolerations: 
+
+# Resource requests and limits for the cron job containers
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+
+# tolerations:
 #   - key: "example-key"
 #     operator: "Equal"
 #     value: "example-value"
