@@ -390,13 +390,16 @@ spec:
                               description: ResourceYaml contains the resource definition
                               properties:
                                 advanced:
-                                  description: Advanced contains advanced metadata
-                                  properties:
-                                    inheritFromBase:
-                                      description:
-                                        InheritFromBase indicates whether
-                                        to inherit configuration from the base environment
-                                      type: boolean
+                                  additionalProperties:
+                                    x-kubernetes-preserve-unknown-fields: true
+                                  description:
+                                    "Advanced contains advanced metadata —
+                                    opaque map preserved through the CRD.
+                                    Serves as an escape hatch for per-resource
+                                    overrides (e.g. common app-chart values,
+                                    node selectors, helm hints) that aren't
+                                    otherwise modeled in the schema. Any JSON
+                                    shape is accepted."
                                   type: object
                                 disabled:
                                   description: Disabled flag
