@@ -76,9 +76,13 @@ spec:
                         description: ArtifactoryType specifies the type
                         enum:
                           - ECR
-                          - ACR
-                          - GCR
-                          - DOCKERHUB
+                          - AZURE_CONTAINER_REGISTRY
+                          - GOOGLE_ARTIFACT_REGISTRY
+                          - GOOGLE_CONTAINER_REGISTRY
+                          - NEXUS
+                          - DOCKER_HUB
+                          - JFROG
+                          - HARBOR
                           - OTHERS
                         type: string
                       awsAccountID:
@@ -113,17 +117,7 @@ spec:
                   properties:
                     artifacts:
                       additionalProperties:
-                        description: Artifact defines a container artifact
-                        properties:
-                          buildID:
-                            description: BuildID for tracking
-                            type: string
-                          uri:
-                            description: URI of the artifact
-                            type: string
-                        required:
-                          - uri
-                        type: object
+                        type: string
                       description: Artifacts defines artifact references
                       type: object
                     secretRef:
