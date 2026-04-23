@@ -2,8 +2,8 @@ apiVersion: v2
 name: iac-operator
 description: A Helm chart for the Infrastructure as Code (IaC) Release Operator for Facets Cloud
 type: application
-version: 0.1.14
-appVersion: "0.1.14"
+version: 0.1.15
+appVersion: "0.1.15"
 keywords:
   - iac
   - terraform
