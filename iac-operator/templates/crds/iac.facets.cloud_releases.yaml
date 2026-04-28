@@ -117,7 +117,23 @@ spec:
                   properties:
                     artifacts:
                       additionalProperties:
-                        type: string
+                        description:
+                          Artifact represents a resolved CI artifact with
+                          URI and build identifier.
+                        properties:
+                          artifactUri:
+                            description:
+                              ArtifactURI is the resolved container image
+                              URI or artifact URI.
+                            type: string
+                          buildID:
+                            description: |-
+                              BuildID identifies the specific build that produced this artifact.
+                              Used by modules to trigger pod restarts on rebuild even when the image tag is unchanged.
+                            type: string
+                        required:
+                          - artifactUri
+                        type: object
                       description: Artifacts defines artifact references
                       type: object
                     secretRef:
@@ -368,6 +384,15 @@ spec:
                                 ResourceReleaseMetadata contains release
                                 metadata for this resource
                               properties:
+                                artifactUrl:
+                                  description: |-
+                                    ArtifactURL is the resolved container image URI / artifact URL for this resource.
+                                    Backend-resolved per-resource (mirrors deploymentcontext.json.resourceMetadata[*].artifactUrl
+                                    in the legacy Python framework). Surfaces in TF state as release_metadata.metadata.artifact_url.
+                                    Required to be present in the payload, but nullable — backend sends null for resources
+                                    without an artifact (non-service kinds, literal images, no Mongo match).
+                                  nullable: true
+                                  type: string
                                 commitID:
                                   description:
                                     CommitID references the commit that created/updated
@@ -384,6 +409,7 @@ spec:
                                     for this override version
                                   type: string
                               required:
+                                - artifactUrl
                                 - commitID
                               type: object
                             resourceYaml:
@@ -392,14 +418,11 @@ spec:
                                 advanced:
                                   additionalProperties:
                                     x-kubernetes-preserve-unknown-fields: true
-                                  description:
-                                    "Advanced contains advanced metadata —
-                                    opaque map preserved through the CRD.
-                                    Serves as an escape hatch for per-resource
-                                    overrides (e.g. common app-chart values,
-                                    node selectors, helm hints) that aren't
-                                    otherwise modeled in the schema. Any JSON
-                                    shape is accepted."
+                                  description: |-
+                                    Advanced contains advanced metadata — opaque map preserved through the
+                                    CRD. Serves as an escape hatch for per-resource overrides (e.g. common
+                                    app-chart values, node selectors, helm hints) that aren't otherwise
+                                    modeled in the schema. Any JSON shape is accepted.
                                   type: object
                                 disabled:
                                   description: Disabled flag
