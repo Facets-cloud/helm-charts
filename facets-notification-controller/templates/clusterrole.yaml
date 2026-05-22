@@ -2,6 +2,8 @@ kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: "facets-notification-cr"
+  labels:
+    {{- include "facets-notification-controller.labels" . | nindent 4 }}
 rules:
 - apiGroups: [""]
   resources: ["pods"]
