@@ -27,6 +27,23 @@ operator:
     resourceName: iac-operator-leader
     resourceNamespace: "" # Uses release namespace if empty
 
+  # Release-CR retention sweeper.
+  # Periodically prunes terminal Release CRs per environment so the cluster
+  # does not accumulate thousands of completed Release objects.
+  # Disabled by default — opt in per cluster.
+  releaseSweeper:
+    enabled: false
+    # How often the sweeper runs.
+    interval: 15m
+    # Per-environment retention cap: sweeper prunes terminal Release CRs
+    # down to this count.
+    maxReleasesPerEnv: 10
+    # High-water mark: sweeper does no work for an environment whose terminal
+    # release count is at or below this.
+    triggerThreshold: 15
+    # If true, run one sweep at operator startup before the first interval.
+    runOnStartup: false
+
 serviceAccount:
   # Specifies whether a service account should be created
   create: true

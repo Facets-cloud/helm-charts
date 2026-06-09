@@ -45,6 +45,13 @@ spec:
           {{- if .Values.operator.watchNamespace }}
           - --namespace={{ .Values.operator.watchNamespace }}
           {{- end }}
+          {{- if .Values.operator.releaseSweeper.enabled }}
+          - --release-sweeper-enabled=true
+          - --release-sweeper-interval={{ .Values.operator.releaseSweeper.interval }}
+          - --release-sweeper-max-per-env={{ .Values.operator.releaseSweeper.maxReleasesPerEnv }}
+          - --release-sweeper-trigger-threshold={{ .Values.operator.releaseSweeper.triggerThreshold }}
+          - --release-sweeper-run-on-startup={{ .Values.operator.releaseSweeper.runOnStartup }}
+          {{- end }}
         env:
         - name: OPERATOR_NAMESPACE
           valueFrom:
