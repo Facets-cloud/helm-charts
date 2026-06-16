@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   labels:
     app: {{ .Release.Name }}-wetty-ssh
+    {{- include "azure-logging-stack.labels" . | nindent 4 }}
   name: {{ .Release.Name }}-wetty-ssh
   namespace: {{ .Release.Namespace }}
 spec:
@@ -17,6 +18,7 @@ spec:
       labels:
         app: {{ .Release.Name }}-wetty-ssh
         release: wetty-ssh
+        {{- include "azure-logging-stack.labels" . | nindent 8 }}
     spec:
       containers:
         - image: {{ .Values.wettySsh.image }}
@@ -80,6 +82,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}-wetty-ssh
     release: wetty-ssh
+    {{- include "azure-logging-stack.labels" . | nindent 4 }}
   name: {{ .Release.Name }}-wetty-ssh
   namespace: {{ .Values.wettySsh.namespace }}
 spec:
