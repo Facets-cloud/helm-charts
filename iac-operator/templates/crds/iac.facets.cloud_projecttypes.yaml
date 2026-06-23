@@ -1,0 +1,73 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.20.0
+  name: projecttypes.iac.facets.cloud
+spec:
+  group: iac.facets.cloud
+  names:
+    kind: ProjectType
+    listKind: ProjectTypeList
+    plural: projecttypes
+    singular: projecttype
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: IaC engine for this project type
+      jsonPath: .spec.iacTool
+      name: IaC Tool
+      type: string
+    - description: IaC engine version
+      jsonPath: .spec.iacToolVersion
+      name: IaC Version
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1
+    schema:
+      openAPIV3Schema:
+        description: ProjectType is the Schema for the projecttypes API.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: |-
+              ProjectTypeSpec defines the desired state of ProjectType.
+              A ProjectType is the archetype that templates a project (Blueprint) and holds
+              per-type IaC policy. For now it carries only the IaC engine and version; this
+              is the single source of truth for which engine releases of this type run on.
+            properties:
+              iacTool:
+                description: |-
+                  IacTool selects the IaC engine for every release of this project type.
+                  Defaults to TERRAFORM when unset.
+                enum:
+                - TERRAFORM
+                - OPENTOFU
+                type: string
+              iacToolVersion:
+                description: IacToolVersion pins the engine version (e.g. "1.5.7").
+                type: string
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources: {}

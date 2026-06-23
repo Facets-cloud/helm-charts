@@ -491,6 +491,25 @@ spec:
               project:
                 description: Project identifies the project name
                 type: string
+              projectTypeRef:
+                description: |-
+                  ProjectTypeRef optionally references a ProjectType resource. When set, the
+                  operator mounts the referenced ProjectType into the release pod and the
+                  generator resolves the IaC engine + version from it. When unset, the
+                  generator defaults to terraform.
+                properties:
+                  name:
+                    description: Name of the ProjectType
+                    minLength: 1
+                    type: string
+                  namespace:
+                    description: Namespace of the ProjectType
+                    minLength: 1
+                    type: string
+                required:
+                - name
+                - namespace
+                type: object
               releaseTemplateRef:
                 description: ReleaseTemplateRef references a ReleaseTemplate resource
                 properties:
