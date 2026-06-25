@@ -32,4 +32,51 @@ webhooks:
     resources:
     - releases
     scope: "*"
+- name: releasetemplate.iac.facets.cloud
+  clientConfig:
+    service:
+      name: {{ include "iac-operator.fullname" . }}-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /validate-iac-facets-cloud-v1-releasetemplate
+  failurePolicy: {{ .Values.webhook.failurePolicy }}
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  sideEffects: None
+  timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+  rules:
+  - apiGroups:
+    - iac.facets.cloud
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - releasetemplates
+    scope: "*"
+- name: projecttype.iac.facets.cloud
+  clientConfig:
+    service:
+      name: {{ include "iac-operator.fullname" . }}-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /validate-iac-facets-cloud-v1-projecttype
+  failurePolicy: {{ .Values.webhook.failurePolicy }}
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  sideEffects: None
+  timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+  rules:
+  - apiGroups:
+    - iac.facets.cloud
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - projecttypes
+    scope: "*"
 {{- end }}
