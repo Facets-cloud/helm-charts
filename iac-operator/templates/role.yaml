@@ -162,4 +162,12 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - iac.facets.cloud
+  resources:
+  - projecttypes
+  verbs:
+  - get
+  - list
+  - watch
 {{- end }}
