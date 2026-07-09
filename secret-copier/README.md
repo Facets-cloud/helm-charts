@@ -1,71 +1,99 @@
-## example with helm chart
+# secret-copier
 
-A helm version of [102-monitor-namespaces](https://github.com/flant/shell-operator/tree/master/examples/102-monitor-namespaces) example. It uses `ghcr.io/flant/shell-operator:latest` image in chart template to run shell-operator and a ConfigMap as a storage for hooks.
+Replicates labelled secrets from the `default` namespace into every other active
+namespace, and keeps them in sync. Built for fanning out image **pull secrets**
+(docker registry credentials) so pods in any namespace can pull images.
 
+It runs [flant/shell-operator](https://github.com/flant/shell-operator) with the
+hooks stored in a ConfigMap (`templates/hook-configmap.yaml`, sourced from
+`.Values.Config` in `values.yaml`).
 
-### Run
+## What it does
 
-Tiller should be configured with ServiceAccount to be able to install releases in different namespaces:
-
-```
-kubectl create serviceaccount tiller --namespace kube-system 
-
-kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-
-helm init --service-account tiller
-```
-
-Install example to ns/example-helm:
+A secret in `default` is replicated to all other namespaces when it carries the
+label:
 
 ```
-helm install . --namespace example-helm --name example-helm
+secret-copier: yes
 ```
 
-### See hook in action
+Four hooks drive the sync:
 
-1. Create ns/foobar to trigger a hook:
+| Hook | Trigger | Action |
+|------|---------|--------|
+| `add_or_update_secret` | labelled secret in `default` Added/Modified | copy to every other active namespace |
+| `create_namespace` | any namespace Added | copy all labelled `default` secrets into it |
+| `schedule_sync_secret` | cron `0 3 * * *` | reconcile all labelled secrets into all namespaces |
+| `delete_secret` | labelled secret in `default` Deleted | **no-op** (targets are intentionally left in place) |
 
-```
-kubectl create ns foobar
-```
+## Type-aware copy (why this is not a plain `kubectl apply`)
 
-See in logs that hook was run:
+A Secret's `.type` is **immutable**. Docker pull secrets exist in two type
+variants that hold the same credentials in different shapes:
 
-```
-kubectl -n example-helm logs deploy/shell-operator
+| type | data key | payload |
+|------|----------|---------|
+| `kubernetes.io/dockercfg` (older kubectl) | `.dockercfg` | `{ "<registry>": {...} }` |
+| `kubernetes.io/dockerconfigjson` (newer kubectl) | `.dockerconfigjson` | `{ "auths": { "<registry>": {...} } }` |
 
-...
-Namespace foobar was created
-...
-```
+When a source secret's type differs from an existing target's type, a naive
+`kubectl apply` fails on the immutable-field conflict and the copy silently
+breaks — which caused a production pull-secret outage.
 
-2. Delete ns/foobar to trigger a hook:
+The copier therefore resolves each target case explicitly, and **never deletes**
+a target (delete+recreate would open a window with no pull secret):
 
-```
-kubectl create ns foobar
-```
+1. **Target missing** → create it (carries the source type).
+2. **Same type** → `apply` (only `.data` changes).
+   - Target `immutable: true` → skip + warn.
+3. **Type mismatch**, `dockercfg ↔ dockerconfigjson` → **patch `.data` only**:
+   convert the payload into the target type's key/shape, drop the stale key,
+   leave `.type` untouched.
+   - Target `immutable: true` → skip + warn (cannot patch).
+   - Any other (non-convertible) type mismatch → skip + warn.
 
-See in logs that hook was run:
+Only `dockercfg ↔ dockerconfigjson` is convertible — those two encode the same
+data. All other type mismatches are skipped, never guessed.
 
-```
-kubectl -n example-helm logs deploy/shell-operator
+## Observability
 
-...
-Namespace foobar was deleted
-...
-```
-
-### Make changes
-
-Deployment/shell-operator has annotation with checksum of hook file, so after editing namespace-hook.sh release can be upgraded without additional kubectl commands:
-
-```
-helm upgrade example-helm . --namespace example-helm
-```
-
-### Cleanup
+Every action logs a `secret-copier:` line to the shell-operator pod's stdout:
 
 ```
-helm delete --purge example-helm
-kubectl delete ns/example-helm
+kubectl -n <release-namespace> logs deploy/<release-name>
 ```
+
+- `created <ns>/<name> (type=...)`
+- `updated <ns>/<name> (type=...)`
+- `converted <ns>/<name> data (<src> -> target type <dst>; type preserved, data patched)`
+- `SKIP <ns>/<name> ...` (immutable / non-convertible / empty payload) — on stderr
+- `ERROR failed to patch <ns>/<name> ...` — on stderr
+
+## Install
+
+```
+helm install secret-copier ./secret-copier --namespace <ns> --create-namespace
+```
+
+Then label a pull secret in `default` to start replication:
+
+```
+kubectl -n default label secret <name> secret-copier=yes
+```
+
+## Upgrade
+
+The shell-operator Deployment is annotated with a checksum of the hook
+ConfigMap, so editing hooks in `values.yaml` and running `helm upgrade` rolls
+the operator automatically:
+
+```
+helm upgrade secret-copier ./secret-copier --namespace <ns>
+```
+
+## Note
+
+This chart is a homegrown equivalent of maintained cross-namespace secret
+replicators such as [emberstack/kubernetes-reflector](https://github.com/emberstack/kubernetes-reflector)
+and [kubed](https://github.com/kubeops/kubed). Consider them if you want an
+off-the-shelf, patch-based replicator instead of maintaining these hooks.
