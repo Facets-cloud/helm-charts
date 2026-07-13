@@ -22,8 +22,15 @@ Config:
       name=$(jq -r '.metadata.name' <<< "$object")
       src_type=$(jq -r '.type // ""' <<< "$object")
 
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
-      existing=$(kubectl -n "$ns" get secret "$name" -o json 2>/dev/null)
       if [[ -z "$existing" ]] ; then
         kubectl apply -f - <<< "$object" >/dev/null
         echo "secret-copier: created $ns/$name (type=$src_type)"
@@ -152,8 +159,15 @@ Config:
       name=$(jq -r '.metadata.name' <<< "$object")
       src_type=$(jq -r '.type // ""' <<< "$object")
 
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
-      existing=$(kubectl -n "$ns" get secret "$name" -o json 2>/dev/null)
       if [[ -z "$existing" ]] ; then
         kubectl apply -f - <<< "$object" >/dev/null
         echo "secret-copier: created $ns/$name (type=$src_type)"
@@ -266,8 +280,15 @@ Config:
       name=$(jq -r '.metadata.name' <<< "$object")
       src_type=$(jq -r '.type // ""' <<< "$object")
 
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
-      existing=$(kubectl -n "$ns" get secret "$name" -o json 2>/dev/null)
       if [[ -z "$existing" ]] ; then
         kubectl apply -f - <<< "$object" >/dev/null
         echo "secret-copier: created $ns/$name (type=$src_type)"
@@ -393,8 +414,15 @@ Config:
       name=$(jq -r '.metadata.name' <<< "$object")
       src_type=$(jq -r '.type // ""' <<< "$object")
 
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
-      existing=$(kubectl -n "$ns" get secret "$name" -o json 2>/dev/null)
       if [[ -z "$existing" ]] ; then
         kubectl apply -f - <<< "$object" >/dev/null
         echo "secret-copier: created $ns/$name (type=$src_type)"
