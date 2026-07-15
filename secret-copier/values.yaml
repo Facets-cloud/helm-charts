@@ -16,7 +16,72 @@ Config:
 
     function kubectl::replace_or_create() {
       object=$(cat)
-      kubectl apply -f - <<< "$object" >/dev/null
+      local ns name src_type existing dst_type dst_immutable key other decoded patch
+
+      ns=$(jq -r '.metadata.namespace' <<< "$object")
+      name=$(jq -r '.metadata.name' <<< "$object")
+      src_type=$(jq -r '.type // ""' <<< "$object")
+
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
+      # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
+      if [[ -z "$existing" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: created $ns/$name (type=$src_type)"
+        return
+      fi
+
+      dst_type=$(jq -r '.type // ""' <<< "$existing")
+      dst_immutable=$(jq -r '.immutable // false' <<< "$existing")
+
+      # Same type -> apply is safe (only .data is mutated, .type unchanged).
+      if [[ "$src_type" == "$dst_type" ]] ; then
+        if [[ "$dst_immutable" == "true" ]] ; then
+          echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
+          return
+        fi
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        return
+      fi
+
+      # Type mismatch: .type is immutable, so we must NOT send it. Patch .data only.
+      # Deleting + recreating would open a window with no pull secret -> outage; do not do that.
+      if [[ "$dst_immutable" == "true" ]] ; then
+        echo "secret-copier: SKIP $ns/$name type mismatch ($src_type -> $dst_type) but target immutable" >&2
+        return
+      fi
+
+      # Only dockercfg <-> dockerconfigjson is safely convertible (data key + payload shape differ).
+      if [[ "$dst_type" == "kubernetes.io/dockerconfigjson" && "$src_type" == "kubernetes.io/dockercfg" ]] ; then
+        key=".dockerconfigjson" ; other=".dockercfg"
+        decoded=$(jq -r '.data[".dockercfg"]' <<< "$object" | base64 -d | jq -c '{auths: .}' | base64 | tr -d '\n')
+      elif [[ "$dst_type" == "kubernetes.io/dockercfg" && "$src_type" == "kubernetes.io/dockerconfigjson" ]] ; then
+        key=".dockercfg" ; other=".dockerconfigjson"
+        decoded=$(jq -r '.data[".dockerconfigjson"]' <<< "$object" | base64 -d | jq -c '.auths' | base64 | tr -d '\n')
+      else
+        echo "secret-copier: SKIP $ns/$name non-convertible type mismatch ($src_type -> $dst_type)" >&2
+        return
+      fi
+
+      if [[ -z "$decoded" || "$decoded" == "null" ]] ; then
+        echo "secret-copier: SKIP $ns/$name conversion produced empty payload" >&2
+        return
+      fi
+
+      # Patch .data only: set the target-type key, drop the stale opposite key, leave .type untouched.
+      patch=$(jq -cn --arg k "$key" --arg o "$other" --arg v "$decoded" '{data: {($k): $v, ($o): null}}')
+      if kubectl -n "$ns" patch secret "$name" --type merge -p "$patch" >/dev/null ; then
+        echo "secret-copier: converted $ns/$name data ($src_type -> target type $dst_type; type preserved, data patched)"
+      else
+        echo "secret-copier: ERROR failed to patch $ns/$name on type mismatch ($src_type -> $dst_type)" >&2
+      fi
     }
 
     hook::config() {
@@ -88,7 +153,72 @@ Config:
 
     function kubectl::replace_or_create() {
       object=$(cat)
-      kubectl apply -f - <<< "$object" >/dev/null
+      local ns name src_type existing dst_type dst_immutable key other decoded patch
+
+      ns=$(jq -r '.metadata.namespace' <<< "$object")
+      name=$(jq -r '.metadata.name' <<< "$object")
+      src_type=$(jq -r '.type // ""' <<< "$object")
+
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
+      # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
+      if [[ -z "$existing" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: created $ns/$name (type=$src_type)"
+        return
+      fi
+
+      dst_type=$(jq -r '.type // ""' <<< "$existing")
+      dst_immutable=$(jq -r '.immutable // false' <<< "$existing")
+
+      # Same type -> apply is safe (only .data is mutated, .type unchanged).
+      if [[ "$src_type" == "$dst_type" ]] ; then
+        if [[ "$dst_immutable" == "true" ]] ; then
+          echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
+          return
+        fi
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        return
+      fi
+
+      # Type mismatch: .type is immutable, so we must NOT send it. Patch .data only.
+      # Deleting + recreating would open a window with no pull secret -> outage; do not do that.
+      if [[ "$dst_immutable" == "true" ]] ; then
+        echo "secret-copier: SKIP $ns/$name type mismatch ($src_type -> $dst_type) but target immutable" >&2
+        return
+      fi
+
+      # Only dockercfg <-> dockerconfigjson is safely convertible (data key + payload shape differ).
+      if [[ "$dst_type" == "kubernetes.io/dockerconfigjson" && "$src_type" == "kubernetes.io/dockercfg" ]] ; then
+        key=".dockerconfigjson" ; other=".dockercfg"
+        decoded=$(jq -r '.data[".dockercfg"]' <<< "$object" | base64 -d | jq -c '{auths: .}' | base64 | tr -d '\n')
+      elif [[ "$dst_type" == "kubernetes.io/dockercfg" && "$src_type" == "kubernetes.io/dockerconfigjson" ]] ; then
+        key=".dockercfg" ; other=".dockerconfigjson"
+        decoded=$(jq -r '.data[".dockerconfigjson"]' <<< "$object" | base64 -d | jq -c '.auths' | base64 | tr -d '\n')
+      else
+        echo "secret-copier: SKIP $ns/$name non-convertible type mismatch ($src_type -> $dst_type)" >&2
+        return
+      fi
+
+      if [[ -z "$decoded" || "$decoded" == "null" ]] ; then
+        echo "secret-copier: SKIP $ns/$name conversion produced empty payload" >&2
+        return
+      fi
+
+      # Patch .data only: set the target-type key, drop the stale opposite key, leave .type untouched.
+      patch=$(jq -cn --arg k "$key" --arg o "$other" --arg v "$decoded" '{data: {($k): $v, ($o): null}}')
+      if kubectl -n "$ns" patch secret "$name" --type merge -p "$patch" >/dev/null ; then
+        echo "secret-copier: converted $ns/$name data ($src_type -> target type $dst_type; type preserved, data patched)"
+      else
+        echo "secret-copier: ERROR failed to patch $ns/$name on type mismatch ($src_type -> $dst_type)" >&2
+      fi
     }
 
     hook::config() {
@@ -144,7 +274,72 @@ Config:
 
     function kubectl::replace_or_create() {
       object=$(cat)
-      kubectl apply -f - <<< "$object" >/dev/null
+      local ns name src_type existing dst_type dst_immutable key other decoded patch
+
+      ns=$(jq -r '.metadata.namespace' <<< "$object")
+      name=$(jq -r '.metadata.name' <<< "$object")
+      src_type=$(jq -r '.type // ""' <<< "$object")
+
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
+      # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
+      if [[ -z "$existing" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: created $ns/$name (type=$src_type)"
+        return
+      fi
+
+      dst_type=$(jq -r '.type // ""' <<< "$existing")
+      dst_immutable=$(jq -r '.immutable // false' <<< "$existing")
+
+      # Same type -> apply is safe (only .data is mutated, .type unchanged).
+      if [[ "$src_type" == "$dst_type" ]] ; then
+        if [[ "$dst_immutable" == "true" ]] ; then
+          echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
+          return
+        fi
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        return
+      fi
+
+      # Type mismatch: .type is immutable, so we must NOT send it. Patch .data only.
+      # Deleting + recreating would open a window with no pull secret -> outage; do not do that.
+      if [[ "$dst_immutable" == "true" ]] ; then
+        echo "secret-copier: SKIP $ns/$name type mismatch ($src_type -> $dst_type) but target immutable" >&2
+        return
+      fi
+
+      # Only dockercfg <-> dockerconfigjson is safely convertible (data key + payload shape differ).
+      if [[ "$dst_type" == "kubernetes.io/dockerconfigjson" && "$src_type" == "kubernetes.io/dockercfg" ]] ; then
+        key=".dockerconfigjson" ; other=".dockercfg"
+        decoded=$(jq -r '.data[".dockercfg"]' <<< "$object" | base64 -d | jq -c '{auths: .}' | base64 | tr -d '\n')
+      elif [[ "$dst_type" == "kubernetes.io/dockercfg" && "$src_type" == "kubernetes.io/dockerconfigjson" ]] ; then
+        key=".dockercfg" ; other=".dockerconfigjson"
+        decoded=$(jq -r '.data[".dockerconfigjson"]' <<< "$object" | base64 -d | jq -c '.auths' | base64 | tr -d '\n')
+      else
+        echo "secret-copier: SKIP $ns/$name non-convertible type mismatch ($src_type -> $dst_type)" >&2
+        return
+      fi
+
+      if [[ -z "$decoded" || "$decoded" == "null" ]] ; then
+        echo "secret-copier: SKIP $ns/$name conversion produced empty payload" >&2
+        return
+      fi
+
+      # Patch .data only: set the target-type key, drop the stale opposite key, leave .type untouched.
+      patch=$(jq -cn --arg k "$key" --arg o "$other" --arg v "$decoded" '{data: {($k): $v, ($o): null}}')
+      if kubectl -n "$ns" patch secret "$name" --type merge -p "$patch" >/dev/null ; then
+        echo "secret-copier: converted $ns/$name data ($src_type -> target type $dst_type; type preserved, data patched)"
+      else
+        echo "secret-copier: ERROR failed to patch $ns/$name on type mismatch ($src_type -> $dst_type)" >&2
+      fi
     }
 
     hook::config() {
@@ -213,7 +408,72 @@ Config:
 
     function kubectl::replace_or_create() {
       object=$(cat)
-      kubectl apply -f - <<< "$object" >/dev/null
+      local ns name src_type existing dst_type dst_immutable key other decoded patch
+
+      ns=$(jq -r '.metadata.namespace' <<< "$object")
+      name=$(jq -r '.metadata.name' <<< "$object")
+      src_type=$(jq -r '.type // ""' <<< "$object")
+
+      # Fetch target. --ignore-not-found => empty stdout + rc 0 when absent; a non-zero rc means a
+      # real API error, in which case skip (do NOT fall through to apply, which would silently no-op
+      # on a mismatched-type target and mislabel it "created").
+      if ! existing=$(kubectl -n "$ns" get secret "$name" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$name, skipping" >&2
+        return
+      fi
+
+      # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
+      if [[ -z "$existing" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: created $ns/$name (type=$src_type)"
+        return
+      fi
+
+      dst_type=$(jq -r '.type // ""' <<< "$existing")
+      dst_immutable=$(jq -r '.immutable // false' <<< "$existing")
+
+      # Same type -> apply is safe (only .data is mutated, .type unchanged).
+      if [[ "$src_type" == "$dst_type" ]] ; then
+        if [[ "$dst_immutable" == "true" ]] ; then
+          echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
+          return
+        fi
+        kubectl apply -f - <<< "$object" >/dev/null
+        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        return
+      fi
+
+      # Type mismatch: .type is immutable, so we must NOT send it. Patch .data only.
+      # Deleting + recreating would open a window with no pull secret -> outage; do not do that.
+      if [[ "$dst_immutable" == "true" ]] ; then
+        echo "secret-copier: SKIP $ns/$name type mismatch ($src_type -> $dst_type) but target immutable" >&2
+        return
+      fi
+
+      # Only dockercfg <-> dockerconfigjson is safely convertible (data key + payload shape differ).
+      if [[ "$dst_type" == "kubernetes.io/dockerconfigjson" && "$src_type" == "kubernetes.io/dockercfg" ]] ; then
+        key=".dockerconfigjson" ; other=".dockercfg"
+        decoded=$(jq -r '.data[".dockercfg"]' <<< "$object" | base64 -d | jq -c '{auths: .}' | base64 | tr -d '\n')
+      elif [[ "$dst_type" == "kubernetes.io/dockercfg" && "$src_type" == "kubernetes.io/dockerconfigjson" ]] ; then
+        key=".dockercfg" ; other=".dockerconfigjson"
+        decoded=$(jq -r '.data[".dockerconfigjson"]' <<< "$object" | base64 -d | jq -c '.auths' | base64 | tr -d '\n')
+      else
+        echo "secret-copier: SKIP $ns/$name non-convertible type mismatch ($src_type -> $dst_type)" >&2
+        return
+      fi
+
+      if [[ -z "$decoded" || "$decoded" == "null" ]] ; then
+        echo "secret-copier: SKIP $ns/$name conversion produced empty payload" >&2
+        return
+      fi
+
+      # Patch .data only: set the target-type key, drop the stale opposite key, leave .type untouched.
+      patch=$(jq -cn --arg k "$key" --arg o "$other" --arg v "$decoded" '{data: {($k): $v, ($o): null}}')
+      if kubectl -n "$ns" patch secret "$name" --type merge -p "$patch" >/dev/null ; then
+        echo "secret-copier: converted $ns/$name data ($src_type -> target type $dst_type; type preserved, data patched)"
+      else
+        echo "secret-copier: ERROR failed to patch $ns/$name on type mismatch ($src_type -> $dst_type)" >&2
+      fi
     }
 
     hook::config() {
