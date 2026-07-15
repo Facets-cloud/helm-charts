@@ -1,0 +1,38 @@
+{{- if and .Values.webhook.enabled .Values.webhook.compression.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "iac-operator.fullname" . }}-mutating-webhook
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "iac-operator.fullname" . }}-webhook-cert
+webhooks:
+# Compresses a large Release spec into spec.compressedSpec before it is
+# persisted, keeping the object under etcd's per-object size limit. Runs on
+# CREATE only; the spec is immutable so there is nothing to recompress on
+# UPDATE. Idempotent and reinvocation-safe.
+- name: compress.release.iac.facets.cloud
+  clientConfig:
+    service:
+      name: {{ include "iac-operator.fullname" . }}-webhook-service
+      namespace: {{ .Release.Namespace }}
+      path: /mutate-iac-facets-cloud-v1-release
+  failurePolicy: {{ .Values.webhook.failurePolicy }}
+  reinvocationPolicy: IfNeeded
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  sideEffects: None
+  timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+  rules:
+  - apiGroups:
+    - iac.facets.cloud
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - releases
+    scope: "*"
+{{- end }}

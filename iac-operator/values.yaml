@@ -97,6 +97,12 @@ webhook:
   service:
     type: ClusterIP
     annotations: {}
+  # Spec-compression mutating webhook: rewrites large Release specs into
+  # spec.compressedSpec (zstd) before they reach etcd, keeping objects under
+  # the per-object size limit. Enabled by default; disable to store specs
+  # plain (only safe if all blueprints stay well under the etcd limit).
+  compression:
+    enabled: true
 
 # API configuration for custom endpoints (approve, decline, status)
 api:

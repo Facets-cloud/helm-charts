@@ -18,7 +18,7 @@ spec:
     - jsonPath: .status.phase
       name: Phase
       type: string
-    - jsonPath: .spec.environment.id
+    - jsonPath: .metadata.labels.iac\.facets\.cloud/environment-id
       name: Environment
       type: string
     - jsonPath: .status.currentPhase
@@ -54,6 +54,46 @@ spec:
               may reject unrecognized values.
               More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
+          compressedSpec:
+            description: |-
+              CompressedSpec holds the whole ReleaseSpec zstd-compressed, for objects
+              whose plain spec would exceed etcd's per-object size limit. It is
+              produced in-cluster by the compression mutating admission webhook — the
+              control plane always submits a plain Spec; the webhook rewrites large
+              objects into this form before they reach etcd. Mutually exclusive with
+              Spec.
+            properties:
+              algorithm:
+                description: Algorithm is the compression algorithm. Only "zstd" is
+                  supported.
+                enum:
+                - zstd
+                type: string
+              data:
+                description: |-
+                  Data is zstd(json(ReleaseSpec)). As a []byte on a custom resource it is
+                  stored base64-encoded in etcd by the Kubernetes JSON codec.
+                format: byte
+                type: string
+              digest:
+                description: |-
+                  Digest is the sha256 hex of the plaintext json(ReleaseSpec). It is
+                  verified against the decompressed bytes on read (integrity), and used
+                  as the spec-identity key for the immutability check.
+                type: string
+              uncompressedBytes:
+                description: |-
+                  UncompressedBytes is the plaintext byte length. Used for preallocation
+                  and as a decompression-bomb guard.
+                format: int64
+                minimum: 1
+                type: integer
+            required:
+            - algorithm
+            - data
+            - digest
+            - uncompressedBytes
+            type: object
           kind:
             description: |-
               Kind is a string value representing the REST resource this object represents.
@@ -65,7 +105,12 @@ spec:
           metadata:
             type: object
           spec:
-            description: ReleaseSpec defines the desired state of Release.
+            description: |-
+              Spec is the plain, readable desired state. In compressed mode this key
+              is absent from the stored object and CompressedSpec carries the spec
+              instead. Exactly one of Spec / CompressedSpec is populated on a stored
+              object. The operator inflates CompressedSpec into Spec in-place on read
+              (see InflateInPlace), so reconcile code always reads Spec.
             properties:
               artifactories:
                 description: Artifactories defines container registry configurations
