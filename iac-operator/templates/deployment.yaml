@@ -41,6 +41,11 @@ spec:
           - --health-probe-bind-address=:{{ .Values.operator.healthPort }}
           {{- if .Values.webhook.enabled }}
           - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+          # certgen (kube-webhook-certgen) writes the secret with keys cert/key/ca,
+          # not the operator's default tls.crt/tls.key — point the cert watcher at
+          # certgen's key names.
+          - --webhook-cert-name=cert
+          - --webhook-cert-key=key
           {{- end }}
           {{- if .Values.operator.watchNamespace }}
           - --namespace={{ .Values.operator.watchNamespace }}

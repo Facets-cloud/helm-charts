@@ -5,8 +5,6 @@ metadata:
   name: {{ include "iac-operator.fullname" . }}-validating-webhook
   labels:
     {{- include "iac-operator.labels" . | nindent 4 }}
-  annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "iac-operator.fullname" . }}-webhook-cert
 webhooks:
 - name: release.iac.facets.cloud
   clientConfig:

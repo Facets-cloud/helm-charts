@@ -97,6 +97,15 @@ webhook:
   service:
     type: ClusterIP
     annotations: {}
+  # The webhook's serving certificate is provisioned by a self-contained pre-install
+  # Job (kube-webhook-certgen): it generates a self-signed cert into certSecret and
+  # patches the webhook's caBundle. No cert-manager dependency.
+  certgen:
+    image:
+      repository: registry.k8s.io/ingress-nginx/kube-webhook-certgen
+      tag: v1.4.4
+      pullPolicy: IfNotPresent
+    resources: {}
 
 # API configuration for custom endpoints (approve, decline, status)
 api:
