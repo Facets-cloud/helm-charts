@@ -1,0 +1,178 @@
+{{- if .Values.webhook.enabled }}
+{{- $fullName := include "iac-operator.fullname" . }}
+# Self-contained webhook certificate provisioning (no cert-manager dependency).
+# A pre-install/upgrade Job generates a self-signed cert into certSecret; a
+# post-install/upgrade Job patches the ValidatingWebhookConfiguration caBundle.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $fullName }}-certgen
+  namespace: {{ include "iac-operator.namespace" . }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ $fullName }}-certgen
+  namespace: {{ include "iac-operator.namespace" . }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $fullName }}-certgen
+  namespace: {{ include "iac-operator.namespace" . }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $fullName }}-certgen
+subjects:
+  - kind: ServiceAccount
+    name: {{ $fullName }}-certgen
+    namespace: {{ include "iac-operator.namespace" . }}
+---
+# caBundle patching is cluster-scoped (ValidatingWebhookConfiguration).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ $fullName }}-certgen
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+rules:
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ $fullName }}-certgen
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade,post-install,post-upgrade
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": before-hook-creation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ $fullName }}-certgen
+subjects:
+  - kind: ServiceAccount
+    name: {{ $fullName }}-certgen
+    namespace: {{ include "iac-operator.namespace" . }}
+---
+# create: generate the self-signed serving cert into certSecret BEFORE the
+# operator Deployment (which mounts it) is installed.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullName }}-certgen-create
+  namespace: {{ include "iac-operator.namespace" . }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      name: {{ $fullName }}-certgen-create
+      labels:
+        {{- include "iac-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ $fullName }}-certgen
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+        - name: create
+          image: "{{ .Values.webhook.certgen.image.repository }}:{{ .Values.webhook.certgen.image.tag }}"
+          imagePullPolicy: {{ .Values.webhook.certgen.image.pullPolicy }}
+          args:
+            - create
+            - --host={{ $fullName }}-webhook-service,{{ $fullName }}-webhook-service.{{ include "iac-operator.namespace" . }}.svc
+            - --namespace={{ include "iac-operator.namespace" . }}
+            - --secret-name={{ .Values.webhook.certSecret }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          resources:
+            {{- toYaml .Values.webhook.certgen.resources | nindent 12 }}
+---
+# patch: write the CA bundle into the ValidatingWebhookConfiguration AFTER it is
+# installed, so the apiserver trusts the webhook's serving cert.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $fullName }}-certgen-patch
+  namespace: {{ include "iac-operator.namespace" . }}
+  labels:
+    {{- include "iac-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      name: {{ $fullName }}-certgen-patch
+      labels:
+        {{- include "iac-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ $fullName }}-certgen
+      restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+        - name: patch
+          image: "{{ .Values.webhook.certgen.image.repository }}:{{ .Values.webhook.certgen.image.tag }}"
+          imagePullPolicy: {{ .Values.webhook.certgen.image.pullPolicy }}
+          args:
+            - patch
+            - --webhook-name={{ $fullName }}-validating-webhook
+            - --namespace={{ include "iac-operator.namespace" . }}
+            - --patch-mutating=false
+            - --secret-name={{ .Values.webhook.certSecret }}
+            # No --patch-failure-policy: the webhook config sets failurePolicy
+            # statically per-webhook (release-delete is Ignore); patching would
+            # clobber all webhooks to a single policy.
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            readOnlyRootFilesystem: true
+          resources:
+            {{- toYaml .Values.webhook.certgen.resources | nindent 12 }}
+{{- end }}

@@ -7,7 +7,6 @@ This Helm chart deploys the Infrastructure as Code (IaC) Release Operator for Ku
 - Kubernetes 1.19+
 - Helm 3.8+
 - kubectl configured to communicate with your cluster
-- cert-manager installed in the cluster (for webhook certificates)
 
 ## Installation
 
@@ -126,7 +125,10 @@ The following table lists the configurable parameters of the IAC Operator chart 
 
 ### Webhook Configuration
 
-The webhook uses cert-manager for automatic certificate management. The CA bundle is automatically injected into the webhook configuration.
+The webhook's serving certificate is provisioned by a self-contained pre-install
+Job (`kube-webhook-certgen`): it generates a self-signed cert into
+`webhook.certSecret` and patches the CA bundle into the webhook configuration.
+No cert-manager dependency.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|

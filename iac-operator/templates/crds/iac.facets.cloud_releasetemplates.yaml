@@ -133,8 +133,9 @@ spec:
                   type: object
                 type: array
               podSpec:
-                description: PodSpec defines pod specifications for pods created by
-                  this template
+                description: |-
+                  PodSpec defines pod specifications for pods created by this template. It is
+                  REQUIRED because it carries the mandatory resources baseline (below).
                 properties:
                   affinity:
                     description: Affinity defines scheduling constraints for pods
@@ -1245,8 +1246,11 @@ spec:
                       relative to other pods
                     type: string
                   resources:
-                    description: Resources defines resource requirements and limits
-                      for pods created by this template
+                    description: |-
+                      Resources is the REQUIRED baseline resource requests/limits for phase pods
+                      created by this template (a Release may override per-environment via
+                      spec.podResources). requests/limits accept any standard resource, including
+                      ephemeral-storage.
                     properties:
                       claims:
                         description: |-
@@ -1584,6 +1588,8 @@ spec:
                           type: string
                       type: object
                     type: array
+                required:
+                - resources
                 type: object
               tfBackend:
                 description: TfBackend defines the Terraform backend configuration
@@ -1736,6 +1742,7 @@ spec:
             - baseImage
             - iacGeneratorVersion
             - phases
+            - podSpec
             - tfBackend
             - timeout
             type: object

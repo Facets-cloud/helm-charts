@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: {{ include "iac-operator.namespace" . }}
   name: {{ include "iac-operator.fullname" . }}-controller-manager
   labels:
     control-plane: controller-manager
@@ -38,9 +39,19 @@ spec:
         args:
           - --leader-elect={{ .Values.operator.leaderElection.enabled }}
           - --metrics-bind-address=:{{ .Values.operator.metricsPort }}
+          # The operator defaults metrics to HTTPS+authz; the metrics Service and
+          # ServiceMonitor scrape plain HTTP, so serve plain HTTP unless the
+          # operator has opted into secure metrics (then configure the
+          # ServiceMonitor scheme/tls/bearer token to match).
+          - --metrics-secure={{ .Values.operator.metricsSecure }}
           - --health-probe-bind-address=:{{ .Values.operator.healthPort }}
           {{- if .Values.webhook.enabled }}
           - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
+          # certgen (kube-webhook-certgen) writes the secret with keys cert/key/ca,
+          # not the operator's default tls.crt/tls.key — point the cert watcher at
+          # certgen's key names.
+          - --webhook-cert-name=cert
+          - --webhook-cert-key=key
           {{- end }}
           {{- if .Values.operator.watchNamespace }}
           - --namespace={{ .Values.operator.watchNamespace }}

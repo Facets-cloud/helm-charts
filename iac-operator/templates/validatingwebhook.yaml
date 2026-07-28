@@ -5,14 +5,12 @@ metadata:
   name: {{ include "iac-operator.fullname" . }}-validating-webhook
   labels:
     {{- include "iac-operator.labels" . | nindent 4 }}
-  annotations:
-    cert-manager.io/inject-ca-from: {{ .Release.Namespace }}/{{ include "iac-operator.fullname" . }}-webhook-cert
 webhooks:
 - name: release.iac.facets.cloud
   clientConfig:
     service:
       name: {{ include "iac-operator.fullname" . }}-webhook-service
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ include "iac-operator.namespace" . }}
       path: /validate-iac-facets-cloud-v1-release
   failurePolicy: {{ .Values.webhook.failurePolicy }}
   admissionReviewVersions:
@@ -28,6 +26,29 @@ webhooks:
     operations:
     - CREATE
     - UPDATE
+    resources:
+    - releases
+    scope: "*"
+- name: release-delete.iac.facets.cloud
+  clientConfig:
+    service:
+      name: {{ include "iac-operator.fullname" . }}-webhook-service
+      namespace: {{ include "iac-operator.namespace" . }}
+      path: /validate-iac-facets-cloud-v1-release
+  # DELETE fails open so a down operator/webhook can't block Release deletion
+  # (and the ownerRef GC of its pods/config/secret).
+  failurePolicy: Ignore
+  admissionReviewVersions:
+  - v1
+  - v1beta1
+  sideEffects: None
+  timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
+  rules:
+  - apiGroups:
+    - iac.facets.cloud
+    apiVersions:
+    - v1
+    operations:
     - DELETE
     resources:
     - releases
@@ -36,7 +57,7 @@ webhooks:
   clientConfig:
     service:
       name: {{ include "iac-operator.fullname" . }}-webhook-service
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ include "iac-operator.namespace" . }}
       path: /validate-iac-facets-cloud-v1-releasetemplate
   failurePolicy: {{ .Values.webhook.failurePolicy }}
   admissionReviewVersions:
@@ -60,7 +81,7 @@ webhooks:
   clientConfig:
     service:
       name: {{ include "iac-operator.fullname" . }}-webhook-service
-      namespace: {{ .Release.Namespace }}
+      namespace: {{ include "iac-operator.namespace" . }}
       path: /validate-iac-facets-cloud-v1-projecttype
   failurePolicy: {{ .Values.webhook.failurePolicy }}
   admissionReviewVersions:

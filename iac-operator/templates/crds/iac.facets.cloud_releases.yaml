@@ -18,7 +18,7 @@ spec:
     - jsonPath: .status.phase
       name: Phase
       type: string
-    - jsonPath: .spec.environment.id
+    - jsonPath: .metadata.labels.iac\.facets\.cloud/environment-id
       name: Environment
       type: string
     - jsonPath: .status.currentPhase
@@ -54,6 +54,47 @@ spec:
               may reject unrecognized values.
               More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
             type: string
+          compressedSpec:
+            description: |-
+              CompressedSpec holds the whole ReleaseSpec zstd-compressed, for objects
+              whose plain spec would exceed etcd's per-object size limit. Produced
+              client-side (kubectl-iac plugin / control plane) before submit; the operator
+              inflates it on read. Mutually exclusive with Spec.
+            properties:
+              algorithm:
+                description: Algorithm is the compression algorithm. Only "zstd" is
+                  supported.
+                enum:
+                - zstd
+                type: string
+              data:
+                description: |-
+                  Data is zstd(json(ReleaseSpec)). As a []byte on a custom resource it is
+                  stored base64-encoded in etcd. MaxLength caps the base64 STRING at 0.9 MiB
+                  (943,718) — matching the client-side budget — so it can never push the CR
+                  or the operator-delivered {release}-config ConfigMap past their ~1 MiB limits.
+                format: byte
+                maxLength: 943718
+                type: string
+              digest:
+                description: |-
+                  Digest is the sha256 hex of the plaintext json(ReleaseSpec). It is
+                  verified against the decompressed bytes on read (integrity), and used
+                  as the spec-identity key for the immutability check.
+                type: string
+              uncompressedBytes:
+                description: |-
+                  UncompressedBytes is the plaintext byte length. Used for preallocation
+                  and as a decompression-bomb guard.
+                format: int64
+                minimum: 1
+                type: integer
+            required:
+            - algorithm
+            - data
+            - digest
+            - uncompressedBytes
+            type: object
           kind:
             description: |-
               Kind is a string value representing the REST resource this object represents.
@@ -65,7 +106,12 @@ spec:
           metadata:
             type: object
           spec:
-            description: ReleaseSpec defines the desired state of Release.
+            description: |-
+              Spec is the plain, readable desired state. In compressed mode this key
+              is absent from the stored object and CompressedSpec carries the spec
+              instead. Exactly one of Spec / CompressedSpec is populated on a stored
+              object. The operator inflates CompressedSpec into Spec in-place on read
+              (see codec.InflateRelease), so reconcile code always reads Spec.
             properties:
               artifactories:
                 description: Artifactories defines container registry configurations
@@ -215,6 +261,14 @@ spec:
                 - id
                 - name
                 type: object
+              iacGeneratorVersion:
+                description: |-
+                  IacGeneratorVersion pins the iac-generator version for THIS release
+                  (resolved per-environment by the control-plane at release time). When set,
+                  it overrides the ReleaseTemplate's iacGeneratorVersion; when empty, the
+                  template value is used (backward-compatible with clients that don't set it).
+                pattern: ^(latest|v?[0-9]+\.[0-9]+\.[0-9]+([-.][0-9A-Za-z]+)*)?$
+                type: string
               logLevelOverride:
                 description: LogLevelOverride overrides the default log level
                 enum:
@@ -488,6 +542,70 @@ spec:
                   type: string
                 maxItems: 50
                 type: array
+              podResources:
+                description: |-
+                  PodResources sets the phase-pod container resource requests/limits for THIS
+                  release (resolved per-environment by the control-plane at release time).
+                  When set, it overrides the ReleaseTemplate's podSpec.resources; when unset,
+                  the template value is used, and if that is unset too the operator imposes no
+                  requests/limits (so a phase is not OOM-killed by an operator-set limit).
+                properties:
+                  claims:
+                    description: |-
+                      Claims lists the names of resources, defined in spec.resourceClaims,
+                      that are used by this container.
+
+                      This is an alpha field and requires enabling the
+                      DynamicResourceAllocation feature gate.
+
+                      This field is immutable. It can only be set for containers.
+                    items:
+                      description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                      properties:
+                        name:
+                          description: |-
+                            Name must match the name of one entry in pod.spec.resourceClaims of
+                            the Pod where this field is used. It makes that resource available
+                            inside a container.
+                          type: string
+                        request:
+                          description: |-
+                            Request is the name chosen for a request in the referenced claim.
+                            If empty, everything from the claim is made available, otherwise
+                            only the result of this request.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - name
+                    x-kubernetes-list-type: map
+                  limits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      Limits describes the maximum amount of compute resources allowed.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                    type: object
+                  requests:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      Requests describes the minimum amount of compute resources required.
+                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                    type: object
+                type: object
               project:
                 description: Project identifies the project name
                 type: string
@@ -673,6 +791,25 @@ spec:
                   executing (transitioned to Running)
                 format: date-time
                 type: string
+              iacGeneratorVersion:
+                description: |-
+                  IacGeneratorVersion records the iac-generator version that processed this
+                  release (resolved from the ReleaseTemplate). This is the audit record of
+                  "what ran"; it churns with every generator release, so it is NOT used as a
+                  metric label (only status + logs). It seeds the archival DB / fleet report.
+                type: string
+              iacTool:
+                description: |-
+                  IacTool records the IaC engine used for this release (e.g. TERRAFORM,
+                  OPENTOFU), resolved from the ProjectType (defaults to TERRAFORM). Saturating
+                  cardinality, so it is also carried as a release metric label.
+                type: string
+              iacToolVersion:
+                description: |-
+                  IacToolVersion records the pinned IaC engine version used for this release,
+                  resolved from the ProjectType. Saturating cardinality, so it is also carried
+                  as a release metric label.
+                type: string
               isFullRelease:
                 description: IsFullRelease indicates whether this is a full release
                   (no targeted resources)
@@ -699,6 +836,31 @@ spec:
                 description: Message provides additional information about the current
                   status
                 type: string
+              metadataRef:
+                description: |-
+                  MetadataRef points the control plane at the object holding this release's
+                  release-metadata JSON, so it follows the reference instead of guessing the
+                  object name. The operator sets it whenever it writes release metadata.
+                properties:
+                  key:
+                    description: Key is the data key within the object holding the
+                      metadata JSON.
+                    type: string
+                  kind:
+                    description: Kind of the object holding the metadata.
+                    enum:
+                    - Secret
+                    - ConfigMap
+                    type: string
+                  name:
+                    description: Name is the actual Kubernetes object name the operator
+                      created.
+                    type: string
+                required:
+                - key
+                - kind
+                - name
+                type: object
               parallelReleases:
                 description: ParallelReleases lists other releases running in parallel
                   in same environment

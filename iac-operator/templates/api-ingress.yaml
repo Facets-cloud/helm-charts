@@ -2,6 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
+  namespace: {{ include "iac-operator.namespace" . }}
   name: {{ include "iac-operator.fullname" . }}-api
   labels:
     {{- include "iac-operator.labels" . | nindent 4 }}

@@ -22,6 +22,18 @@ Create a default fully qualified app name.
 {{- end }}
 
 {{/*
+Namespace the operator, its release pods, and all namespaced resources live in =
+the Helm release namespace (`helm install -n <ns>`). Install into a dedicated
+namespace with `--create-namespace` (we recommend `iac-operator`); helm creates
+it before the pre-install certgen hook runs. The operator creates its release
+pods in this same namespace, so everything is co-located (required for ownerRef
+GC), and the control-plane must create Release CRs here too.
+*/}}
+{{- define "iac-operator.namespace" -}}
+{{- .Release.Namespace }}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "iac-operator.chart" -}}

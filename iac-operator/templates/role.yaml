@@ -11,25 +11,9 @@ rules:
   resources:
   - configmaps
   - namespaces
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
-  - patch
-- apiGroups:
-  - ""
-  resources:
   - pods
+  - secrets
+  - services
   verbs:
   - create
   - delete
@@ -45,13 +29,6 @@ rules:
   verbs:
   - create
   - patch
-- apiGroups:
-  - ""
-  resources:
-  - pods/log
-  verbs:
-  - get
-  - list
 - apiGroups:
   - ""
   resources:
@@ -66,26 +43,6 @@ rules:
   verbs:
   - get
   - list
-- apiGroups:
-  - ""
-  resources:
-  - secrets
-  verbs:
-  - get
-  - list
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - services
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
 - apiGroups:
   - batch
   resources:
@@ -113,32 +70,15 @@ rules:
 - apiGroups:
   - iac.facets.cloud
   resources:
-  - releases
+  - projecttypes
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
 - apiGroups:
   - iac.facets.cloud
   resources:
-  - releases/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - iac.facets.cloud
-  resources:
-  - releases/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - iac.facets.cloud
-  resources:
+  - releases
   - releasetemplates
   verbs:
   - create
@@ -151,23 +91,17 @@ rules:
 - apiGroups:
   - iac.facets.cloud
   resources:
+  - releases/finalizers
   - releasetemplates/finalizers
   verbs:
   - update
 - apiGroups:
   - iac.facets.cloud
   resources:
+  - releases/status
   - releasetemplates/status
   verbs:
   - get
   - patch
   - update
-- apiGroups:
-  - iac.facets.cloud
-  resources:
-  - projecttypes
-  verbs:
-  - get
-  - list
-  - watch
 {{- end }}

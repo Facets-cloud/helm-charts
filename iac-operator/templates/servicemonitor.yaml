@@ -2,6 +2,7 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
+  namespace: {{ include "iac-operator.namespace" . }}
   name: {{ include "iac-operator.fullname" . }}
   labels:
     {{- include "iac-operator.labels" . | nindent 4 }}
