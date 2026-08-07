@@ -181,8 +181,10 @@ spec:
                     description: Artifacts defines artifact references
                     type: object
                   secretRef:
-                    description: SecretRef references a secret containing sensitive
-                      data
+                    description: |-
+                      SecretRef references a secret containing sensitive data. Optional: envs with an
+                      empty provided-secrets bundle (e.g. fresh launch/relaunch) omit it; the generator
+                      skips the secret-fetch step when nil.
                     properties:
                       cloud:
                         description: Cloud provider
@@ -209,7 +211,6 @@ spec:
                     type: object
                 required:
                 - artifacts
-                - secretRef
                 - variables
                 type: object
               environment:
