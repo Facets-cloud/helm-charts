@@ -104,4 +104,7 @@ rules:
   - get
   - patch
   - update
+{{- with .Values.rbac.additionalRules }}
+{{ toYaml . }}
+{{- end }}
 {{- end }}

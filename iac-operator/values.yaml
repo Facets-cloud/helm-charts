@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: facetscloud/iac-operator
   pullPolicy: IfNotPresent
-  tag: "operator-v0.1.23"
+  tag: "operator-v0.2.1"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -54,6 +54,14 @@ serviceAccount:
 rbac:
   # Specifies whether RBAC resources should be created
   create: true
+  # Extra rules appended to the manager ClusterRole. Use this to grant the
+  # operator's service account permissions the chart does not ship by default,
+  # e.g. tekton.dev for control planes that run Facets actions.
+  # additionalRules:
+  #   - apiGroups: ["tekton.dev"]
+  #     resources: ["tasks", "stepactions"]
+  #     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  additionalRules: []
 podAnnotations: {}
 podSecurityContext:
   runAsNonRoot: true

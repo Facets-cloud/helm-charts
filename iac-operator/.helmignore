@@ -1,0 +1,9 @@
+# CI/dev helpers — never ship in the packaged chart
+hack/
+# VCS / editor / OS cruft
+.git/
+.gitignore
+*.swp
+*.bak
+*.tmp
+.DS_Store
