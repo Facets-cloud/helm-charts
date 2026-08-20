@@ -39,8 +39,8 @@ The following table lists the configurable parameters of the IAC Operator chart 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `replicaCount` | Number of operator replicas | `1` |
-| `image.repository` | Operator image repository | `facets/iac-operator` |
-| `image.tag` | Operator image tag | `latest` |
+| `image.repository` | Operator image repository | `facetscloud/iac-operator` |
+| `image.tag` | Operator image tag; must be `operator-v<appVersion>` | `operator-v1.1.1` |
 | `image.pullPolicy` | Image pull policy | `IfNotPresent` |
 | `imagePullSecrets` | Image pull secrets | `[]` |
 | `nameOverride` | Override chart name | `""` |
@@ -55,46 +55,15 @@ The following table lists the configurable parameters of the IAC Operator chart 
 | `operator.healthPort` | Health probe port | `8081` |
 | `operator.leaderElection.enabled` | Enable leader election | `true` |
 | `operator.watchNamespace` | Namespace to watch (empty = all) | `""` |
-| `operator.maxConcurrentReconciles` | Max concurrent reconciles | `1` |
 
-### IAC Generator Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `operator.iacGenerator.image` | IAC Generator image | `facets/iac-generator:latest` |
-| `operator.iacGenerator.version` | IAC Generator version | `1.0.0` |
-| `operator.iacGenerator.downloadURL` | URL to download IAC Generator | `https://github.com/...` |
-
-### Terraform Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `operator.terraform.image` | Terraform image | `hashicorp/terraform:1.5.7` |
-
-### Pod Resource Defaults
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `operator.podDefaults.resources.limits.cpu` | CPU limit for pods | `2` |
-| `operator.podDefaults.resources.limits.memory` | Memory limit for pods | `4Gi` |
-| `operator.podDefaults.resources.requests.cpu` | CPU request for pods | `500m` |
-| `operator.podDefaults.resources.requests.memory` | Memory request for pods | `1Gi` |
-
-### Queue Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `operator.queue.maxRetries` | Max retry attempts | `3` |
-| `operator.queue.retryDelay` | Delay between retries | `30s` |
-| `operator.queue.maxQueueSize` | Maximum queue size | `100` |
-
-### Environment Lock Configuration
-
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `operator.environmentLock.enabled` | Enable environment locking | `true` |
-| `operator.environmentLock.timeout` | Lock timeout in seconds | `3600` |
-| `operator.environmentLock.gcInterval` | Garbage collection interval | `300` |
+| `operator.metricsSecure` | Serve /metrics over HTTPS with authz. The shipped ServiceMonitor sets no `scheme`, `tlsConfig` or `bearerTokenFile`, so it keeps scraping over HTTP and breaks. Editing the template is the only way to scrape a secure endpoint | `false` |
+| `operator.leaderElection.resourceName` | Leader-election lease name | `iac-operator-leader` |
+| `operator.leaderElection.resourceNamespace` | Lease namespace (empty = release namespace) | `""` |
+| `operator.releaseSweeper.enabled` | Prune old Releases per environment | `false` |
+| `operator.releaseSweeper.interval` | Sweep interval | `15m` |
+| `operator.releaseSweeper.maxReleasesPerEnv` | Releases kept per environment | `10` |
+| `operator.releaseSweeper.triggerThreshold` | Release count that triggers a sweep | `15` |
+| `operator.releaseSweeper.runOnStartup` | Sweep once at startup | `false` |
 
 ### RBAC Configuration
 
@@ -104,6 +73,8 @@ The following table lists the configurable parameters of the IAC Operator chart 
 | `serviceAccount.annotations` | Service account annotations | `{}` |
 | `serviceAccount.name` | Service account name | `""` |
 | `rbac.create` | Create RBAC resources | `true` |
+
+| `rbac.additionalRules` | Extra rules appended to the manager ClusterRole | `[]` |
 
 ### Service Configuration
 
@@ -123,6 +94,8 @@ The following table lists the configurable parameters of the IAC Operator chart 
 | `serviceMonitor.scrapeTimeout` | Scrape timeout | `10s` |
 | `serviceMonitor.labels` | Additional labels | `{}` |
 
+| `serviceMonitor.annotations` | Annotations on the ServiceMonitor | `{}` |
+
 ### Webhook Configuration
 
 The webhook's serving certificate is provisioned by a self-contained pre-install
@@ -140,13 +113,18 @@ No cert-manager dependency.
 | `webhook.service.type` | Webhook service type | `ClusterIP` |
 | `webhook.service.annotations` | Webhook service annotations | `{}` |
 
+| `webhook.certgen.image.repository` | certgen image (issues the webhook cert; no cert-manager needed) | `registry.k8s.io/ingress-nginx/kube-webhook-certgen` |
+| `webhook.certgen.image.tag` | certgen image tag | `v1.4.4` |
+| `webhook.certgen.image.pullPolicy` | certgen pull policy | `IfNotPresent` |
+| `webhook.certgen.resources` | certgen job resources | `{}` |
+
 ### API Configuration
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 | `api.enabled` | Enable custom API endpoints | `true` |
 | `api.service.type` | API service type | `ClusterIP` |
-| `api.service.port` | API service port | `8443` |
+| `api.service.port` | API service port | `9090` |
 | `api.service.nodePort` | NodePort (if type is NodePort) | `null` |
 | `api.service.annotations` | API service annotations | `{}` |
 | `api.ingress.enabled` | Enable Ingress for API | `false` |
@@ -155,12 +133,37 @@ No cert-manager dependency.
 | `api.ingress.hosts` | Ingress host configuration | See values.yaml |
 | `api.ingress.tls` | TLS configuration | `[]` |
 
+| `api.port` | Container port the API listens on | `9090` |
+
 ### CRD Management
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `crds.install` | Install CRDs with chart | `true` |
-| `crds.keep` | Keep CRDs on uninstall | `true` |
+| `crds.install` | Present in `values.yaml` but read by no template. CRDs are always installed | `true` |
+| `crds.keep` | Present in `values.yaml` but read by no template. It does not protect CRDs on uninstall | `false` |
+
+> **`helm uninstall` deletes the CRDs and every custom resource in them.** The CRD
+> templates carry no `helm.sh/resource-policy: keep`, and neither `crds.install` nor
+> `crds.keep` is wired up, so uninstalling removes `releases`, `releasetemplates` and
+> `projecttypes` along with every `Release`, `ReleaseTemplate` and `ProjectType`
+> object. Back those up first.
+
+### Pod Placement and Security
+
+| Parameter | Description | Default |
+|---|---|---|
+| `resources.limits.cpu` / `.memory` | Operator container limits | `1000m` / `1Gi` |
+| `resources.requests.cpu` / `.memory` | Operator container requests | `500m` / `512Mi` |
+| `autoscaling.enabled` | Enable an HPA for the operator | `false` |
+| `autoscaling.minReplicas` / `.maxReplicas` | HPA bounds | `1` / `3` |
+| `autoscaling.targetCPUUtilizationPercentage` | HPA CPU target | `80` |
+| `autoscaling.targetMemoryUtilizationPercentage` | HPA memory target | `80` |
+| `podAnnotations` | Annotations on the operator pod | `{}` |
+| `podSecurityContext` | Pod security context (non-root, uid/fsGroup 65532) | see `values.yaml` |
+| `securityContext` | Container security context (no privilege escalation, all caps dropped, read-only rootfs) | see `values.yaml` |
+| `nodeSelector` / `tolerations` / `affinity` | Standard scheduling controls | `{}` / `[]` / `{}` |
+| `config.env` | Extra env vars for the operator container | `{}` |
+| `config.volumes` / `config.volumeMounts` | Extra volumes and mounts | `[]` / `[]` |
 
 ## Uninstallation
 
@@ -173,6 +176,7 @@ If you want to delete the CRDs as well:
 ```bash
 kubectl delete crd releases.iac.facets.cloud
 kubectl delete crd releasetemplates.iac.facets.cloud
+kubectl delete crd projecttypes.iac.facets.cloud
 ```
 
 ## Examples
@@ -184,11 +188,7 @@ Create a `values.yaml` file:
 ```yaml
 operator:
   logLevel: debug
-  iacGenerator:
-    image: my-registry/iac-generator:v2.0.0
-  terraform:
-    image: hashicorp/terraform:1.6.0
-  
+
 resources:
   limits:
     cpu: 1000m
@@ -257,7 +257,7 @@ api:
   enabled: true
   service:
     type: NodePort
-    port: 8443
+    port: 9090
     nodePort: 30443
 ```
 
