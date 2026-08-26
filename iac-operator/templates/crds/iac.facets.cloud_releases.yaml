@@ -187,22 +187,33 @@ spec:
                       skips the secret-fetch step when nil.
                     properties:
                       cloud:
-                        description: Cloud provider
+                        description: Cloud provider. CloudSecretsManager only.
                         enum:
                         - aws
                         - azure
                         - gcp
                         type: string
                       key:
-                        description: Key or ARN of the secret
+                        description: |-
+                          Key of the secret: the ARN for CloudSecretsManager, or the Secret data key
+                          for KubernetesSecret (optional there, defaults to "environment").
+                        type: string
+                      name:
+                        description: Name of the Kubernetes Secret, in the operator
+                          namespace. KubernetesSecret only.
                         type: string
                       region:
-                        description: Region specifies the cloud region for the secret
+                        description: Region specifies the cloud region for the secret.
+                          CloudSecretsManager only.
                         type: string
-                    required:
-                    - cloud
-                    - key
-                    - region
+                      type:
+                        description: |-
+                          Type selects the branch. Absent means CloudSecretsManager: every ref written before
+                          the union existed named no type and meant a Secrets Manager entry.
+                        enum:
+                        - KubernetesSecret
+                        - CloudSecretsManager
+                        type: string
                     type: object
                   variables:
                     additionalProperties:

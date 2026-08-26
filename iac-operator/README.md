@@ -4,7 +4,7 @@ This Helm chart deploys the Infrastructure as Code (IaC) Release Operator for Ku
 
 ## Prerequisites
 
-- Kubernetes 1.19+
+- Kubernetes 1.25+ (the CRDs use CEL validation, which older apiservers ignore)
 - Helm 3.8+
 - kubectl configured to communicate with your cluster
 

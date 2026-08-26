@@ -54,6 +54,9 @@ spec:
               A ProjectType is the archetype that templates a project (Blueprint) and holds
               per-type IaC policy. For now it carries only the IaC engine and version; this
               is the single source of truth for which engine releases of this type run on.
+
+              The generated workspace uses terraform_data, so the engine must be Terraform 1.4.0
+              or newer, or OpenTofu 1.6.0 or newer.
             properties:
               iacTool:
                 description: |-
@@ -64,9 +67,22 @@ spec:
                 - OPENTOFU
                 type: string
               iacToolVersion:
-                description: IacToolVersion pins the engine version (e.g. "1.5.7").
+                description: |-
+                  IacToolVersion pins the engine version: Terraform 1.4.0 or newer (e.g. "1.5.7"),
+                  or OpenTofu 1.6.0 or newer (e.g. "1.12.3"). A prerelease or build suffix is
+                  allowed. Unset uses the engine baked into the release-pod image.
+                pattern: ^$|^v?[0-9]+\.[0-9]+(\.[0-9]+)?([-+][0-9A-Za-z.\-+]*)?$
                 type: string
             type: object
+            x-kubernetes-validations:
+            - message: 'Terraform below 1.4.0 cannot plan the generated workspace:
+                it has no terraform_data resource'
+              rule: (has(self.iacTool) && self.iacTool == 'OPENTOFU') || !has(self.iacToolVersion)
+                || size(self.iacToolVersion) == 0 || !self.iacToolVersion.matches('^v?(0[.]|1[.][0-3]([.]|[-+]|$))')
+            - message: 'OpenTofu below 1.6.0 cannot plan the generated workspace:
+                it has no terraform_data resource'
+              rule: '!(has(self.iacTool) && self.iacTool == ''OPENTOFU'') || !has(self.iacToolVersion)
+                || size(self.iacToolVersion) == 0 || !self.iacToolVersion.matches(''^v?(0[.]|1[.][0-5]([.]|[-+]|$))'')'
         type: object
     served: true
     storage: true

@@ -2,8 +2,12 @@ apiVersion: v2
 name: iac-operator
 description: A Helm chart for the Infrastructure as Code (IaC) Release Operator for Facets Cloud
 type: application
-version: 1.1.2
-appVersion: "1.1.2"
+version: 1.2.0
+appVersion: "1.2.0"
+# The Release CRD carries x-kubernetes-validations, which is beta-on from 1.25. Older
+# apiservers drop the field and enforce nothing, so state the floor rather than let the
+# engine-version rule vanish quietly.
+kubeVersion: ">=1.25.0-0"
 keywords:
   - iac
   - terraform
