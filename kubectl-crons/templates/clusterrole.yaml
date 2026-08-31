@@ -2,6 +2,9 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: {{ .Release.Name  }}
+  labels:
+    resource_type: "configuration"
+    resource_name: "kubectl-cron"
 rules:
 - apiGroups:
     - ""

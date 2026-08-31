@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   labels:
     app: {{ .Release.Name }}-wetty
+    {{- include "azure-logging-stack.labels" . | nindent 4 }}
   name: {{ .Release.Name }}-wetty
   namespace: {{ .Release.Namespace }}
 spec:
@@ -21,6 +22,7 @@ spec:
       labels:
         app: {{ .Release.Name }}-wetty
         release: wetty
+        {{- include "azure-logging-stack.labels" . | nindent 8 }}
     spec:
       containers:
         - command:
@@ -87,6 +89,7 @@ kind: Service
 metadata:
   labels:
     app: {{ .Release.Name }}-wetty
+    {{- include "azure-logging-stack.labels" . | nindent 4 }}
   name: {{ .Release.Name }}-wetty
   namespace: {{ .Values.wetty.namespace }}
 spec:

@@ -2,6 +2,8 @@ kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: "facets-notification-crb"
+  labels:
+    {{- include "facets-notification-controller.labels" . | nindent 4 }}
 subjects:
 - kind: ServiceAccount
   name: "facets-notification-sa"
