@@ -441,6 +441,11 @@ spec:
                                 description: CommitID references the commit that created/updated
                                   this resource
                                 type: string
+                              moduleVersion:
+                                description: ModuleVersion is the custom module build
+                                  this resource is pinned to, as "<moduleId>:<sequence>".
+                                  Optional.
+                                type: string
                               overrideVersion:
                                 description: OverrideVersion is the override version
                                   number
@@ -448,6 +453,11 @@ spec:
                               overrideVersionID:
                                 description: OverrideVersionID is the unique identifier
                                   for this override version
+                                type: string
+                              variableDigest:
+                                description: VariableDigest is a digest over the variables
+                                  and secrets this resource references, never a value.
+                                  Optional.
                                 type: string
                             required:
                             - artifactUrl
