@@ -273,6 +273,54 @@ spec:
                 - id
                 - name
                 type: object
+              fileMounts:
+                description: |-
+                  FileMounts are files staged out-of-band by the control plane, mounted read-only
+                  under /files. By reference (the Release object is size-gated); the object must
+                  exist BEFORE the Release - optional=false blocks the pod loudly otherwise.
+                items:
+                  description: |-
+                    FileMount references a ConfigMap or Secret mounted read-only at /files/<path|name>.
+                    The operator's contract ends at the mount; meaning belongs to the template/generator.
+                  properties:
+                    name:
+                      description: |-
+                        Name of the object, in the Release's namespace (ownerRefs cannot cross namespaces).
+                        DNS-1123: it doubles as the default mount path AND names a real object; a name the
+                        apiserver would refuse must not reach pod creation (it wedges every reconcile).
+                      maxLength: 253
+                      minLength: 1
+                      pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$
+                      type: string
+                    path:
+                      description: |-
+                        Path is the subdirectory under /files; defaults to Name. Single path segment -
+                        no separators or traversal.
+                      maxLength: 253
+                      pattern: ^[A-Za-z0-9]([A-Za-z0-9._-]*[A-Za-z0-9])?$
+                      type: string
+                    type:
+                      description: Type of the referenced object.
+                      enum:
+                      - configMap
+                      - secret
+                      type: string
+                    validate:
+                      description: |-
+                        Validate names the generator-side prebuild validator. Not an enum on purpose:
+                        the vocabulary ships with the generator, no CRD change. Unknown name fails closed.
+                      type: string
+                  required:
+                  - name
+                  - type
+                  type: object
+                maxItems: 20
+                type: array
+                x-kubernetes-validations:
+                - message: fileMounts resolved mount paths (path, defaulting to name)
+                    must be unique
+                  rule: 'self.all(a, self.exists_one(b, (has(b.path) ? b.path : b.name)
+                    == (has(a.path) ? a.path : a.name)))'
               iacGeneratorVersion:
                 description: |-
                   IacGeneratorVersion pins the iac-generator version for THIS release
