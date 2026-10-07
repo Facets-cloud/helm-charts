@@ -982,6 +982,12 @@ spec:
                 - Queued
                 - Superseded
                 type: string
+              phaseImage:
+                description: |-
+                  PhaseImage records the container image the phase pods run, resolved at first
+                  execute and reused by every later phase so plan and apply share one image even
+                  if the ReleaseTemplate changes mid-release.
+                type: string
               phaseStatuses:
                 description: PhaseStatuses tracks the status of each phase
                 items:

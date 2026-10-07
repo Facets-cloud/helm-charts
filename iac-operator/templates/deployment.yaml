@@ -45,6 +45,7 @@ spec:
           # ServiceMonitor scheme/tls/bearer token to match).
           - --metrics-secure={{ .Values.operator.metricsSecure }}
           - --health-probe-bind-address=:{{ .Values.operator.healthPort }}
+          - --phase-image-tag-from-generator-version={{ .Values.operator.phaseImageTagFromGeneratorVersion }}
           {{- if .Values.webhook.enabled }}
           - --webhook-cert-path=/tmp/k8s-webhook-server/serving-certs
           # certgen (kube-webhook-certgen) writes the secret with keys cert/key/ca,

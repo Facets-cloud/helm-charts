@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: facetscloud/iac-operator
   pullPolicy: IfNotPresent
-  tag: "operator-v1.5.0"
+  tag: "operator-v1.6.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -22,6 +22,11 @@ operator:
   metricsSecure: false
   # Health probe port
   healthPort: 8081
+  # Run phase pods on the ReleaseTemplate baseImage's repository tagged
+  # v<release's iac-generator version>, so an environment's generator pin also
+  # picks the release-pod image (engines, scripts). Needs a v<X.Y.Z> tag published
+  # for every pinned version; leave false for custom base images without one.
+  phaseImageTagFromGeneratorVersion: false
   # Leader election
   leaderElection:
     enabled: true
