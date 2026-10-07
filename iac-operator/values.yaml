@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: facetscloud/iac-operator
   pullPolicy: IfNotPresent
-  tag: "operator-v1.4.0"
+  tag: "operator-v1.5.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""

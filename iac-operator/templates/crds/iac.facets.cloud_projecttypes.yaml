@@ -73,8 +73,9 @@ spec:
               iacToolVersion:
                 description: |-
                   IacToolVersion pins the engine version: Terraform 1.4.0 or newer (e.g. "1.5.7"),
-                  or OpenTofu 1.6.0 or newer (e.g. "1.12.3"). A prerelease or build suffix is
-                  allowed. Unset uses the engine baked into the release-pod image.
+                  or OpenTofu 1.6.0 or newer (e.g. "1.12.5"). A prerelease or build suffix is
+                  allowed. Unset, or exactly the baked X.Y.Z, uses the Facets build in the release-pod
+                  image; any other version downloads the stock upstream release.
                 pattern: ^$|^v?[0-9]+\.[0-9]+(\.[0-9]+)?([-+][0-9A-Za-z.\-+]*)?$
                 type: string
             type: object

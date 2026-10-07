@@ -616,6 +616,13 @@ spec:
                   type: string
                 maxItems: 50
                 type: array
+              podLabels:
+                additionalProperties:
+                  type: string
+                description: |-
+                  PodLabels are labels for THIS release's phase pods, merged over the
+                  ReleaseTemplate's podSpec.labels. Operator-owned iac.facets.cloud/* labels win.
+                type: object
               podResources:
                 description: |-
                   PodResources sets the phase-pod container resource requests/limits for THIS
