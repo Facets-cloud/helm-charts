@@ -55,7 +55,7 @@ The following table lists the configurable parameters of the IAC Operator chart 
 | `operator.healthPort` | Health probe port | `8081` |
 | `operator.leaderElection.enabled` | Enable leader election | `true` |
 | `operator.watchNamespace` | Namespace to watch (empty = all) | `""` |
-| `operator.phaseImageTagFromGeneratorVersion` | Run phase pods on the ReleaseTemplate `baseImage`'s repository tagged `v<release's iac-generator version>`, so an environment's generator pin also picks the release-pod image (engines, scripts). Every pinned version needs that tag published; leave `false` for custom base images without one | `false` |
+| `operator.phaseImageTagFromGeneratorVersion` | Run phase pods on the ReleaseTemplate `baseImage`'s repository tagged `v<release's iac-generator version>`, so an environment's generator pin also picks the release-pod image (engines, scripts). Every pinned version needs that tag published; set `false` for a custom base image without one | `true` |
 
 | `operator.metricsSecure` | Serve /metrics over HTTPS with authz. The shipped ServiceMonitor sets no `scheme`, `tlsConfig` or `bearerTokenFile`, so it keeps scraping over HTTP and breaks. Editing the template is the only way to scrape a secure endpoint | `false` |
 | `operator.leaderElection.resourceName` | Leader-election lease name | `iac-operator-leader` |
