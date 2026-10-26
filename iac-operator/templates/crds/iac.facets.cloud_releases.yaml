@@ -913,6 +913,13 @@ spec:
                   - type
                   type: object
                 type: array
+              mergePending:
+                description: |-
+                  MergePending names the detached phase whose merge outcome has not been read yet.
+                  It is set before that phase's pod is created and cleared when its outcome is
+                  recorded, so an outcome lost to an operator restart or a vanished pod still
+                  surfaces as StateMerged=False/Unmerged.
+                type: string
               message:
                 description: Message provides additional information about the current
                   status
@@ -962,6 +969,16 @@ spec:
                 - kind
                 - name
                 type: object
+              parallelDetach:
+                description: |-
+                  ParallelDetach records, at admission in parallel mode, whether the release's
+                  template permitted parallel detach (iacv1.TemplatePermitsParallelDetach). Every
+                  later decision for the release (the lock it re-takes after an approval, whether
+                  its phase pods detach, supersede's view of it) reads this, so a template rewritten
+                  mid-release cannot switch it between resource locks and the exclusive lock. Unset
+                  on releases admitted by an older operator or with parallel mode off; those
+                  evaluate the template.
+                type: boolean
               parallelReleases:
                 description: ParallelReleases lists other releases running in parallel
                   in same environment

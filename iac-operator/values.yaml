@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: facetscloud/iac-operator
   pullPolicy: IfNotPresent
-  tag: "operator-v1.6.5"
+  tag: "operator-v1.7.0"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -27,6 +27,29 @@ operator:
   # picks the release-pod image (engines, scripts). Needs a v<X.Y.Z> tag published
   # for every pinned version; set false for a custom base image without one.
   phaseImageTagFromGeneratorVersion: true
+  # Let targeted releases run at once in one environment. Off by default.
+  # When on, the operator locks per resource and admits a targeted release whose target
+  # set does not overlap a running one. Its pod applies against a local copy of the state
+  # and merges back exactly the modules the phase changed, under a short lock. If another
+  # release changed the same resource meanwhile (a clash), the other release's copy is kept
+  # and the release fails with the StateMerged=False condition: run a full release, and
+  # import or delete any resources listed as orphans. Only templates whose lock-holding
+  # phases set parallelDetach: true run in parallel. Roll out generator >= 1.6.0 first and
+  # drain in-flight releases before turning this on (see AGENTS.md, "Runbook: parallel
+  # releases"). A full release still takes the environment exclusively, and environments
+  # pinned below iac-generator 1.6.0 run targeted releases exclusively too.
+  # Drain in-flight releases before flipping this either way: an approval resume or the
+  # next phase of a running release does not yet wait for parallel releases' locks (#202).
+  # Limits: two targeted releases whose modules depend on each other may read stale
+  # inputs; a create longer than parallelTerminationGrace, node loss or an OOM-killed pod
+  # can leave applied changes unrecorded (StateMerged=False).
+  enableParallelReleases: false
+  # Grace period for a detached parallel-release phase pod. On TERM (eviction, delete,
+  # void, phase timeout) the pod interrupts terraform and merges what it applied before
+  # this runs out. 10m matches cluster-autoscaler's max-graceful-termination-sec.
+  # Minimum 100s when enableParallelReleases is on (the operator refuses to start below
+  # it): the state push gets grace-30s and a merge needs at least 40s.
+  parallelTerminationGrace: 10m
   # Leader election
   leaderElection:
     enabled: true

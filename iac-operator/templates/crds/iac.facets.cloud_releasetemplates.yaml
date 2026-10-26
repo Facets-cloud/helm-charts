@@ -106,6 +106,19 @@ spec:
                     name:
                       description: Name of the phase
                       type: string
+                    parallelDetach:
+                      default: false
+                      description: |-
+                        ParallelDetach opts this phase into parallel targeted releases. With the
+                        operator's --enable-parallel-releases on, a targeted release runs in parallel
+                        (per-resource locks, apply against a detached local copy of the state, merge on
+                        reattach) only when EVERY lock-holding phase of its template sets this. Otherwise
+                        it is admitted exclusively, like a full release, and never detaches. Set it only
+                        on a phase whose commands are a plain targeted plan/apply: not destroy (a targeted
+                        destroy cascades into dependents), not a saved-plan apply (it writes the real
+                        backend), not state rm/import/mv or force-unlock (they would act on the local copy).
+                        Ignored on phases that do not hold the environment lock.
+                      type: boolean
                     terraformOptions:
                       description: |-
                         TerraformOptions configures Terraform CLI flags for this phase
