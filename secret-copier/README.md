@@ -17,7 +17,7 @@ label:
 secret-copier: yes
 ```
 
-Four hooks drive the sync:
+In the default mode (`all`), four hooks drive the sync:
 
 | Hook | Trigger | Action |
 |------|---------|--------|
@@ -25,6 +25,40 @@ Four hooks drive the sync:
 | `create_namespace` | any namespace Added | copy all labelled `default` secrets into it |
 | `schedule_sync_secret` | cron `0 3 * * *` | reconcile all labelled secrets into all namespaces |
 | `delete_secret` | labelled secret in `default` Deleted | **no-op** (targets are intentionally left in place) |
+
+## Mode `referenced` (1.2.0)
+
+`mode: all`, the default, is the behaviour above and renders exactly as 1.1.0.
+
+`mode: referenced` copies a secret only into the namespaces that use it, for pull
+secrets that shouldn't sit in every namespace (Facets uses it for ECR logins of
+registries on IAM role auth). It watches secrets labelled
+
+```
+secret-copier: referenced
+```
+
+in `sourceNamespace` (default `default`), and copies each one into every namespace
+that has a pod or a ServiceAccount whose `imagePullSecrets` names it:
+
+| Trigger | Action |
+|---------|--------|
+| labelled secret Added/Modified, and at start-up | copy to every namespace that uses it |
+| pod Added, ServiceAccount Added/Modified | copy the labelled secrets it names into its namespace |
+| cron `17 * * * *` | reconcile every labelled secret |
+
+A pod created before its namespace has the secret starts once the copy lands:
+kubelet retries the pull. The same type-aware rules apply, and copies are never
+deleted. A copy left in a namespace that stopped using the secret is no longer
+refreshed. In this mode the ClusterRole can also read pods and ServiceAccounts.
+
+A cluster can run one release in each mode side by side: they watch different
+labels.
+
+```
+helm install secret-copier-referenced ./secret-copier \
+  --set mode=referenced --set sourceNamespace=<namespace of the source secrets>
+```
 
 ## Type-aware copy (why this is not a plain `kubectl apply`)
 

@@ -24,6 +24,11 @@ spec:
       - name: shell-operator
         image: "ghcr.io/flant/shell-operator:v1.6.1"
         imagePullPolicy: Always
+        {{- if eq .Values.mode "referenced" }}
+        env:
+        - name: SOURCE_NAMESPACE
+          value: {{ .Values.sourceNamespace | quote }}
+        {{- end }}
         volumeMounts:
         - name: {{ .Release.Name }}
           mountPath: /hooks/
