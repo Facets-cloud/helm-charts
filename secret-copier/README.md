@@ -43,9 +43,9 @@ that has a pod or a ServiceAccount whose `imagePullSecrets` names it:
 
 | Trigger | Action |
 |---------|--------|
-| labelled secret Added/Modified, and at start-up | copy to every namespace that uses it |
-| pod Added, ServiceAccount Added/Modified | copy the labelled secrets it names into its namespace |
-| cron `17 * * * *` | reconcile every labelled secret |
+| labelled secret Modified | update the copies that already exist (a lookup by name, no cluster-wide list) |
+| pod Added, ServiceAccount Added/Modified | copy the labelled secrets it names into its namespace, if missing |
+| start-up, and cron `17 * * * *` | list pods and ServiceAccounts, copy or update each secret everywhere it is used |
 
 A pod created before its namespace has the secret starts once the copy lands:
 kubelet retries the pull. The same type-aware rules apply, and copies are never

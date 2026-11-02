@@ -524,11 +524,13 @@ ReferencedConfig:
     # that use it: those with a pod or a ServiceAccount whose imagePullSecrets name it. A pull
     # secret then sits only where something pulls with it, not in every namespace.
     #
-    #   - the secret is added or changed      -> copy it to every namespace that uses it
-    #   - a pod or ServiceAccount is added    -> copy the secrets it names into its namespace
-    #     or a ServiceAccount's list changes     (kubelet retries the pull, so a pod created a
-    #                                             moment before its secret still starts)
-    #   - every hour, and at start-up         -> the same for every secret and namespace
+    #   - the secret changes                  -> update the copies that already exist (one lookup by
+    #                                             name, so a refresh never lists the whole cluster)
+    #   - a pod or ServiceAccount is added    -> copy the secrets it names into its namespace if they
+    #     or a ServiceAccount's list changes     aren't there yet (kubelet retries the pull, so a pod
+    #                                             created a moment before its secret still starts)
+    #   - every hour, and at start-up         -> find every namespace that uses each secret (lists
+    #                                             pods and ServiceAccounts) and copy or update
     #
     # Copies are created or updated, never deleted, as in mode "all". A copy left in a namespace
     # that stopped using it is no longer refreshed; an ECR login in it expires within 12 hours.
@@ -652,6 +654,20 @@ ReferencedConfig:
       done
     }
 
+    # Namespaces that already hold a copy of the secret, other than the source.
+    copier::namespaces_with_copy() {
+      kubectl get secrets --all-namespaces --field-selector "metadata.name=$1" \
+        -o jsonpath='{range .items[*]}{.metadata.namespace}{"\n"}{end}' \
+        | grep -vx "$SOURCE_NAMESPACE"
+    }
+
+    copier::update_copies() {
+      local ns
+      for ns in $(copier::namespaces_with_copy "$1") ; do
+        copier::copy "$1" "$ns"
+      done
+    }
+
     copier::sync_all() {
       local secret
       for secret in $(copier::secrets) ; do
@@ -670,7 +686,7 @@ ReferencedConfig:
             copier::sync_all
             ;;
           secrets/Event)
-            copier::sync_secret "$(jq -r ".[$i].object.metadata.name" "$BINDING_CONTEXT_PATH")"
+            copier::update_copies "$(jq -r ".[$i].object.metadata.name" "$BINDING_CONTEXT_PATH")"
             ;;
           pods/Event|serviceaccounts/Event)
             local ns names secrets name
@@ -679,7 +695,9 @@ ReferencedConfig:
             [[ -z "$names" || "$ns" == "$SOURCE_NAMESPACE" ]] && continue
             secrets=$(copier::secrets)
             for name in $names ; do
-              grep -qx "$name" <<< "$secrets" && copier::copy "$name" "$ns"
+              grep -qx "$name" <<< "$secrets" || continue
+              # Already there: secret events keep it current.
+              kubectl -n "$ns" get secret "$name" -o name >/dev/null 2>&1 || copier::copy "$name" "$ns"
             done
             ;;
         esac
