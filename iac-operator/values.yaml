@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: facetscloud/iac-operator
   pullPolicy: IfNotPresent
-  tag: "operator-v1.7.2"
+  tag: "operator-v1.7.3"
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
@@ -38,6 +38,8 @@ operator:
   # drain in-flight releases before turning this on (see AGENTS.md, "Runbook: parallel
   # releases"). A full release still takes the environment exclusively, and environments
   # pinned below iac-generator 1.6.0 run targeted releases exclusively too.
+  # The control plane's parallel-releases setting wins: a release it creates with the
+  # setting off (annotation iac.facets.cloud/parallel-releases: "false") runs exclusively.
   # Drain in-flight releases before flipping this either way: an approval resume or the
   # next phase of a running release does not yet wait for parallel releases' locks (#202).
   # Limits: two targeted releases whose modules depend on each other may read stale
