@@ -1,6 +1,13 @@
 annotations: {}
 podAnnotations: {}
 
+# "all" (the default) copies every secret labelled secret-copier=yes from the default namespace
+# into every other namespace, as this chart always has. "referenced" copies secrets labelled
+# secret-copier=referenced from sourceNamespace only into the namespaces whose pods or
+# ServiceAccounts list them in imagePullSecrets. A cluster can run one release of each.
+mode: all
+sourceNamespace: default
+
 Config:
   add_or_update_secret: |
     #!/usr/bin/env bash
@@ -507,3 +514,198 @@ Config:
     }
 
     common::run_hook "$@"
+
+# Hooks for mode: referenced. Rendered instead of Config when mode is "referenced".
+ReferencedConfig:
+  copy_to_referencing_namespaces: |
+    #!/usr/bin/env bash
+    #
+    # Copies each secret labelled secret-copier=referenced in $SOURCE_NAMESPACE into the namespaces
+    # that use it: those with a pod or a ServiceAccount whose imagePullSecrets name it. A pull
+    # secret then sits only where something pulls with it, not in every namespace.
+    #
+    #   - the secret changes                  -> update the copies that already exist (one lookup by
+    #                                             name, so a refresh never lists the whole cluster)
+    #   - a pod or ServiceAccount is added    -> copy the secrets it names into its namespace if they
+    #     or a ServiceAccount's list changes     aren't there yet (kubelet retries the pull, so a pod
+    #                                             created a moment before its secret still starts)
+    #   - every hour, and at start-up         -> find every namespace that uses each secret (lists
+    #                                             pods and ServiceAccounts) and copy or update
+    #
+    # Copies are created or updated, never deleted, as in mode "all". A copy left in a namespace
+    # that stopped using it is no longer refreshed; an ECR login in it expires within 12 hours.
+
+    SOURCE_NAMESPACE="${SOURCE_NAMESPACE:-default}"
+    LABEL="secret-copier=referenced"
+
+    hook::config() {
+      cat <<EOF
+    {
+      "configVersion": "v1",
+      "kubernetes": [
+        {
+          "name": "secrets",
+          "apiVersion": "v1",
+          "kind": "Secret",
+          "executeHookOnEvent": ["Added", "Modified"],
+          "labelSelector": {"matchLabels": {"secret-copier": "referenced"}},
+          "namespace": {"nameSelector": {"matchNames": ["${SOURCE_NAMESPACE}"]}},
+          "jqFilter": ".data"
+        },
+        {
+          "name": "pods",
+          "apiVersion": "v1",
+          "kind": "Pod",
+          "executeHookOnEvent": ["Added"],
+          "executeHookOnSynchronization": false,
+          "keepFullObjectsInMemory": false,
+          "jqFilter": "{namespace: .metadata.namespace, names: [.spec.imagePullSecrets[]?.name]}"
+        },
+        {
+          "name": "serviceaccounts",
+          "apiVersion": "v1",
+          "kind": "ServiceAccount",
+          "executeHookOnEvent": ["Added", "Modified"],
+          "executeHookOnSynchronization": false,
+          "keepFullObjectsInMemory": false,
+          "jqFilter": "{namespace: .metadata.namespace, names: [.imagePullSecrets[]?.name]}"
+        }
+      ],
+      "schedule": [
+        {"name": "hourly", "crontab": "17 * * * *", "allowFailure": true}
+      ]
+    }
+    EOF
+    }
+
+    # The labelled secrets in the source namespace, one name per line.
+    copier::secrets() {
+      kubectl -n "$SOURCE_NAMESPACE" get secret -l "$LABEL" \
+        -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}'
+    }
+
+    # Namespaces with a pod or ServiceAccount that names the secret, other than the source.
+    copier::namespaces_using() {
+      kubectl get pods,serviceaccounts --all-namespaces -o json \
+        | jq -r --arg s "$1" --arg src "$SOURCE_NAMESPACE" '
+            .items[]
+            | select(((.spec.imagePullSecrets // .imagePullSecrets // []) | map(.name) | index($s)) != null)
+            | .metadata.namespace
+            | select(. != $src)' \
+        | sort -u
+    }
+
+    # Creates or updates the copy of secret $1 in namespace $2. Same type-aware rules as mode "all":
+    # a copy is never deleted, and a dockercfg/dockerconfigjson mismatch only has its data patched.
+    copier::copy() {
+      local secret=$1 ns=$2 source existing src_type dst_type key other decoded
+      [[ "$ns" == "$SOURCE_NAMESPACE" ]] && return
+      if ! source=$(kubectl -n "$SOURCE_NAMESPACE" get secret "$secret" -o json 2>/dev/null) ; then
+        echo "secret-copier: ERROR could not read $SOURCE_NAMESPACE/$secret" >&2
+        return
+      fi
+      if ! existing=$(kubectl -n "$ns" get secret "$secret" -o json --ignore-not-found 2>/dev/null) ; then
+        echo "secret-copier: ERROR get failed for $ns/$secret, skipping" >&2
+        return
+      fi
+      if [[ -n "$existing" && "$(jq -c '.data' <<< "$existing")" == "$(jq -c '.data' <<< "$source")" ]] ; then
+        return
+      fi
+      local object
+      object=$(jq --arg ns "$ns" '.metadata.namespace = $ns
+        | .metadata |= with_entries(select([.key] | inside(["name", "namespace", "labels"])))' <<< "$source")
+      if [[ -z "$existing" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null && echo "secret-copier: created $ns/$secret"
+        return
+      fi
+      if [[ "$(jq -r '.immutable // false' <<< "$existing")" == "true" ]] ; then
+        echo "secret-copier: SKIP $ns/$secret is immutable" >&2
+        return
+      fi
+      src_type=$(jq -r '.type // ""' <<< "$source")
+      dst_type=$(jq -r '.type // ""' <<< "$existing")
+      if [[ "$src_type" == "$dst_type" ]] ; then
+        kubectl apply -f - <<< "$object" >/dev/null && echo "secret-copier: updated $ns/$secret"
+        return
+      fi
+      if [[ "$dst_type" == "kubernetes.io/dockerconfigjson" && "$src_type" == "kubernetes.io/dockercfg" ]] ; then
+        key=".dockerconfigjson" ; other=".dockercfg"
+        decoded=$(jq -r '.data[".dockercfg"]' <<< "$source" | base64 -d | jq -c '{auths: .}' | base64 | tr -d '\n')
+      elif [[ "$dst_type" == "kubernetes.io/dockercfg" && "$src_type" == "kubernetes.io/dockerconfigjson" ]] ; then
+        key=".dockercfg" ; other=".dockerconfigjson"
+        decoded=$(jq -r '.data[".dockerconfigjson"]' <<< "$source" | base64 -d | jq -c '.auths' | base64 | tr -d '\n')
+      else
+        echo "secret-copier: SKIP $ns/$secret non-convertible type mismatch ($src_type -> $dst_type)" >&2
+        return
+      fi
+      if [[ -z "$decoded" || "$decoded" == "null" ]] ; then
+        echo "secret-copier: SKIP $ns/$secret conversion produced empty payload" >&2
+        return
+      fi
+      kubectl -n "$ns" patch secret "$secret" --type merge \
+        -p "$(jq -cn --arg k "$key" --arg o "$other" --arg v "$decoded" '{data: {($k): $v, ($o): null}}')" >/dev/null \
+        && echo "secret-copier: converted $ns/$secret data ($src_type -> $dst_type)"
+    }
+
+    copier::sync_secret() {
+      local ns
+      for ns in $(copier::namespaces_using "$1") ; do
+        copier::copy "$1" "$ns"
+      done
+    }
+
+    # Namespaces that already hold a copy of the secret, other than the source.
+    copier::namespaces_with_copy() {
+      kubectl get secrets --all-namespaces --field-selector "metadata.name=$1" \
+        -o jsonpath='{range .items[*]}{.metadata.namespace}{"\n"}{end}' \
+        | grep -vx "$SOURCE_NAMESPACE"
+    }
+
+    copier::update_copies() {
+      local ns
+      for ns in $(copier::namespaces_with_copy "$1") ; do
+        copier::copy "$1" "$ns"
+      done
+    }
+
+    copier::sync_all() {
+      local secret
+      for secret in $(copier::secrets) ; do
+        copier::sync_secret "$secret"
+      done
+    }
+
+    hook::trigger() {
+      local count i binding type
+      count=$(jq 'length' "$BINDING_CONTEXT_PATH")
+      for (( i = 0; i < count; i++ )) ; do
+        binding=$(jq -r ".[$i].binding" "$BINDING_CONTEXT_PATH")
+        type=$(jq -r ".[$i].type" "$BINDING_CONTEXT_PATH")
+        case "$binding/$type" in
+          hourly/Schedule|secrets/Synchronization)
+            copier::sync_all
+            ;;
+          secrets/Event)
+            copier::update_copies "$(jq -r ".[$i].object.metadata.name" "$BINDING_CONTEXT_PATH")"
+            ;;
+          pods/Event|serviceaccounts/Event)
+            local ns names secrets name
+            ns=$(jq -r ".[$i].filterResult.namespace" "$BINDING_CONTEXT_PATH")
+            names=$(jq -r ".[$i].filterResult.names[]?" "$BINDING_CONTEXT_PATH")
+            [[ -z "$names" || "$ns" == "$SOURCE_NAMESPACE" ]] && continue
+            secrets=$(copier::secrets)
+            for name in $names ; do
+              grep -qx "$name" <<< "$secrets" || continue
+              # Already there: secret events keep it current.
+              kubectl -n "$ns" get secret "$name" -o name >/dev/null 2>&1 || copier::copy "$name" "$ns"
+            done
+            ;;
+        esac
+      done
+    }
+
+    if [[ $1 == "--config" ]] ; then
+      hook::config
+    else
+      hook::trigger
+    fi

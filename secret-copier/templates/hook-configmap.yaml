@@ -5,7 +5,8 @@ metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 data:
-{{- range $path, $config := .Values.Config }}
+{{- $hooks := ternary .Values.ReferencedConfig .Values.Config (eq .Values.mode "referenced") }}
+{{- range $path, $config := $hooks }}
   {{ $path }}: |
 {{ $config | indent 4 -}}
 {{- end -}}

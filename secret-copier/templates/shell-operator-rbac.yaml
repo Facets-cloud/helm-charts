@@ -16,6 +16,12 @@ rules:
 - apiGroups: [""]
   resources: ["secrets"]
   verbs: ["*"]
+{{- if eq .Values.mode "referenced" }}
+# To find the namespaces that use a secret.
+- apiGroups: [""]
+  resources: ["pods", "serviceaccounts"]
+  verbs: ["get", "watch", "list"]
+{{- end }}
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
