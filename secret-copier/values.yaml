@@ -8,9 +8,24 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
-        hook::trigger
+        # shell-operator parses stdout as the hook config, so the startup sync logs to stderr
+        hook::trigger >&2
       else
         hook::trigger
+      fi
+    }
+
+    # Apply one copy and report what really happened. A namespace that is gone or terminating
+    # was deleted after the event fired: skip it. Anything else is logged as an error. A failed
+    # copy never fails the hook, so one bad namespace cannot hold up the rest of the queue.
+    function kubectl::apply_copy() {
+      local ns=$1 name=$2 verb=$3 type=$4 out
+      if out=$(kubectl apply -f - 2>&1 >/dev/null <<< "$object") ; then
+        echo "secret-copier: $verb $ns/$name (type=$type)"
+      elif grep -qE "namespaces \"$ns\" not found|because it is being terminated" <<< "$out" ; then
+        echo "secret-copier: SKIP $ns/$name, namespace is gone or terminating" >&2
+      else
+        echo "secret-copier: ERROR apply failed for $ns/$name: $out" >&2
       fi
     }
 
@@ -32,8 +47,7 @@ Config:
 
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
       if [[ -z "$existing" ]] ; then
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: created $ns/$name (type=$src_type)"
+        kubectl::apply_copy "$ns" "$name" created "$src_type"
         return
       fi
 
@@ -46,8 +60,7 @@ Config:
           echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
           return
         fi
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        kubectl::apply_copy "$ns" "$name" updated "$dst_type"
         return
       fi
 
@@ -92,6 +105,8 @@ Config:
         {
           "apiVersion": "v1",
           "kind": "Secret",
+          "allowFailure": true,
+          "queue": "secret-updates",
           "executeHookOnEvent": [
             "Added",
             "Modified"
@@ -145,9 +160,24 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
-        hook::trigger
+        # shell-operator parses stdout as the hook config, so the startup sync logs to stderr
+        hook::trigger >&2
       else
         hook::trigger
+      fi
+    }
+
+    # Apply one copy and report what really happened. A namespace that is gone or terminating
+    # was deleted after the event fired: skip it. Anything else is logged as an error. A failed
+    # copy never fails the hook, so one bad namespace cannot hold up the rest of the queue.
+    function kubectl::apply_copy() {
+      local ns=$1 name=$2 verb=$3 type=$4 out
+      if out=$(kubectl apply -f - 2>&1 >/dev/null <<< "$object") ; then
+        echo "secret-copier: $verb $ns/$name (type=$type)"
+      elif grep -qE "namespaces \"$ns\" not found|because it is being terminated" <<< "$out" ; then
+        echo "secret-copier: SKIP $ns/$name, namespace is gone or terminating" >&2
+      else
+        echo "secret-copier: ERROR apply failed for $ns/$name: $out" >&2
       fi
     }
 
@@ -169,8 +199,7 @@ Config:
 
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
       if [[ -z "$existing" ]] ; then
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: created $ns/$name (type=$src_type)"
+        kubectl::apply_copy "$ns" "$name" created "$src_type"
         return
       fi
 
@@ -183,8 +212,7 @@ Config:
           echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
           return
         fi
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        kubectl::apply_copy "$ns" "$name" updated "$dst_type"
         return
       fi
 
@@ -229,6 +257,8 @@ Config:
         {
           "apiVersion": "v1",
           "kind": "namespace",
+          "allowFailure": true,
+          "queue": "namespace-added",
           "executeHookOnEvent": [
             "Added"
           ]
@@ -250,6 +280,13 @@ Config:
 
       for namespace in $(jq -r '.[] | .object.metadata | select(.name == "default" | not ) | .name' $BINDING_CONTEXT_PATH);
       do
+        # The namespace can be deleted before this event is handled. Copying into it then fails
+        # on every retry, so check it is still Active first.
+        phase=$(kubectl get namespace "$namespace" -o jsonpath='{.status.phase}' --ignore-not-found 2>/dev/null)
+        if [[ "$phase" != "Active" ]] ; then
+          echo "secret-copier: SKIP namespace $namespace (phase=${phase:-gone})" >&2
+          continue
+        fi
         for secret in $(kubectl -n default get secret -l secret-copier=yes -o name);
         do
           kubectl -n default get $secret -o json | \
@@ -266,9 +303,24 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
-        hook::trigger
+        # shell-operator parses stdout as the hook config, so the startup sync logs to stderr
+        hook::trigger >&2
       else
         hook::trigger
+      fi
+    }
+
+    # Apply one copy and report what really happened. A namespace that is gone or terminating
+    # was deleted after the event fired: skip it. Anything else is logged as an error. A failed
+    # copy never fails the hook, so one bad namespace cannot hold up the rest of the queue.
+    function kubectl::apply_copy() {
+      local ns=$1 name=$2 verb=$3 type=$4 out
+      if out=$(kubectl apply -f - 2>&1 >/dev/null <<< "$object") ; then
+        echo "secret-copier: $verb $ns/$name (type=$type)"
+      elif grep -qE "namespaces \"$ns\" not found|because it is being terminated" <<< "$out" ; then
+        echo "secret-copier: SKIP $ns/$name, namespace is gone or terminating" >&2
+      else
+        echo "secret-copier: ERROR apply failed for $ns/$name: $out" >&2
       fi
     }
 
@@ -290,8 +342,7 @@ Config:
 
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
       if [[ -z "$existing" ]] ; then
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: created $ns/$name (type=$src_type)"
+        kubectl::apply_copy "$ns" "$name" created "$src_type"
         return
       fi
 
@@ -304,8 +355,7 @@ Config:
           echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
           return
         fi
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        kubectl::apply_copy "$ns" "$name" updated "$dst_type"
         return
       fi
 
@@ -350,6 +400,8 @@ Config:
         {
           "apiVersion": "v1",
           "kind": "secret",
+          "allowFailure": true,
+          "queue": "secret-deleted",
           "executeHookOnEvent": [
             "Deleted"
           ],
@@ -400,9 +452,24 @@ Config:
     function common::run_hook() {
       if [[ $1 == "--config" ]] ; then
         hook::config
-        hook::trigger
+        # shell-operator parses stdout as the hook config, so the startup sync logs to stderr
+        hook::trigger >&2
       else
         hook::trigger
+      fi
+    }
+
+    # Apply one copy and report what really happened. A namespace that is gone or terminating
+    # was deleted after the event fired: skip it. Anything else is logged as an error. A failed
+    # copy never fails the hook, so one bad namespace cannot hold up the rest of the queue.
+    function kubectl::apply_copy() {
+      local ns=$1 name=$2 verb=$3 type=$4 out
+      if out=$(kubectl apply -f - 2>&1 >/dev/null <<< "$object") ; then
+        echo "secret-copier: $verb $ns/$name (type=$type)"
+      elif grep -qE "namespaces \"$ns\" not found|because it is being terminated" <<< "$out" ; then
+        echo "secret-copier: SKIP $ns/$name, namespace is gone or terminating" >&2
+      else
+        echo "secret-copier: ERROR apply failed for $ns/$name: $out" >&2
       fi
     }
 
@@ -424,8 +491,7 @@ Config:
 
       # Target does not exist yet -> create it (carries the source type). Safe for fresh namespaces.
       if [[ -z "$existing" ]] ; then
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: created $ns/$name (type=$src_type)"
+        kubectl::apply_copy "$ns" "$name" created "$src_type"
         return
       fi
 
@@ -438,8 +504,7 @@ Config:
           echo "secret-copier: SKIP $ns/$name is immutable, cannot update data" >&2
           return
         fi
-        kubectl apply -f - <<< "$object" >/dev/null
-        echo "secret-copier: updated $ns/$name (type=$dst_type)"
+        kubectl::apply_copy "$ns" "$name" updated "$dst_type"
         return
       fi
 
@@ -483,7 +548,8 @@ Config:
       "schedule": [
         {
           "allowFailure": true,
-          "crontab": "0 3 * * *"
+          "queue": "full-sync",
+          "crontab": "0 * * * *"
         }
       ]
     }

@@ -23,8 +23,27 @@ Four hooks drive the sync:
 |------|---------|--------|
 | `add_or_update_secret` | labelled secret in `default` Added/Modified | copy to every other active namespace |
 | `create_namespace` | any namespace Added | copy all labelled `default` secrets into it |
-| `schedule_sync_secret` | cron `0 3 * * *` | reconcile all labelled secrets into all namespaces |
+| `schedule_sync_secret` | cron `0 * * * *` (hourly), and once at start-up | reconcile all labelled secrets into all namespaces |
 | `delete_secret` | labelled secret in `default` Deleted | **no-op** (targets are intentionally left in place) |
+
+## Failure handling
+
+Each hook runs on its own shell-operator queue (`secret-updates`, `namespace-added`,
+`secret-deleted`, `full-sync`), and every binding sets `allowFailure: true`. A hook that
+fails is logged and dropped, not retried in a loop, and it never holds up the other hooks.
+
+Before 1.1.1 every hook shared the `main` queue and a failed hook was retried every few
+seconds forever. A namespace deleted before `create_namespace` handled its Added event
+made `kubectl apply` fail with `namespaces "<ns>" not found` on every retry. That blocked
+every later copy, including refreshed pull secrets, and the copies in other namespaces went
+stale until the pod was restarted.
+
+Now:
+
+- `create_namespace` skips a namespace that is no longer `Active`.
+- A copy into a namespace that is gone or terminating is logged as `SKIP` and does not fail the hook.
+- Any other apply failure is logged as `ERROR` with the API message, so a failed copy is never reported as `created`.
+- The hourly full sync repairs any copy that was missed.
 
 ## Type-aware copy (why this is not a plain `kubectl apply`)
 
@@ -68,6 +87,8 @@ kubectl -n <release-namespace> logs deploy/<release-name>
 - `converted <ns>/<name> data (<src> -> target type <dst>; type preserved, data patched)`
 - `SKIP <ns>/<name> ...` (immutable / non-convertible / empty payload) — on stderr
 - `ERROR failed to patch <ns>/<name> ...` — on stderr
+- `SKIP <ns>/<name>, namespace is gone or terminating` / `SKIP namespace <ns> (phase=...)` — on stderr
+- `ERROR apply failed for <ns>/<name>: <api message>` — on stderr
 
 ## Install
 
